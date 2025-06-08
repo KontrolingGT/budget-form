@@ -1,88 +1,66 @@
-<!DOCTYPE html>
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Formularz Budżetu GT</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #F4F4F4; /* Szare tło strony */
-        }
-        .budget-container {
-            background-color: #FFFFFF; /* Białe tło formularza */
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border: 2px solid #000000; /* Czarna ramka */
-        }
-        h2, h3, h4, h5 {
-            color: #F05A28; /* Pomarańczowe nagłówki */
-        }
-        input, select, textarea, button {
-            margin: 10px 0;
-            padding: 8px;
-            width: 100%;
-            box-sizing: border-box;
-            border: 1px solid #000000; /* Czarna ramka pól */
-            border-radius: 4px;
-        }
-        button {
-            background-color: #F05A28; /* Pomarańczowe tło przycisków */
-            color: #FFFFFF; /* Biały tekst na przyciskach */
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        button:hover {
-            background-color: #D94A20; /* Ciemniejszy pomarańczowy na hover */
-        }
-        #send-data, #download-data {
-            background-color: #000000; /* Czarne tło dla przycisków wysyłania i pobierania */
-            color: #FFFFFF;
-        }
-        #send-data:hover, #download-data:hover {
-            background-color: #333333; /* Ciemniejszy szary na hover */
-        }
-        #clear-data {
-            background-color: #F05A28; /* Pomarańczowy dla przycisku czyszczenia */
-        }
-        #clear-data:hover {
-            background-color: #D94A20;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            border: 1px solid #000000; /* Czarna ramka tabeli */
-        }
-        th, td {
-            border: 1px solid #000000;
-            padding: 8px;
-            text-align: left;
-            color: #000000; /* Czarny tekst w tabeli */
-        }
-        th {
-            background-color: #F05A28; /* Pomarańczowe tło nagłówków tabeli */
-            color: #FFFFFF; /* Biały tekst nagłówków */
-        }
-        .section {
-            margin-bottom: 20px;
-        }
-        .month-inputs {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .month-inputs input {
-            width: 100px;
-        }
-        label {
-            color: #000000; /* Czarny tekst etykiet */
-        }
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px; background-color: #F4F4F4; }
+        .budget-container { background-color: #FFFFFF; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); border: 2px solid #000000; }
+        h2, h3, h4, h5 { color: #F05A28; }
+        input, select, textarea, button { margin: 10px 0; padding: 8px; width: 100%; box-sizing: border-box; border: 1px solid #000000; border-radius: 4px; }
+        button { background-color: #F05A28; color: #FFFFFF; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #D94A20; }
+        #send-data, #download-excel, #download-json { background-color: #000000; color: #FFFFFF; }
+        #send-data:hover, #download-excel:hover, #download-json:hover { background-color: #333333; }
+        #clear-data { background-color: #F05A28; }
+        #clear-data:hover { background-color: #D94A20; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; border: 1px solid #000000; }
+        th, td { border: 1px solid #000000; padding: 8px; text-align: left; color: #000000; }
+        th { background-color: #F05A28; color: #FFFFFF; }
+        .section { margin-bottom: 20px; }
+        .month-inputs { display: flex; flex-wrap: wrap; gap: 10px; }
+        .month-inputs input { width: 120px; }
+        label { color: #000000; display: block; margin-bottom: 5px; }
     </style>
 </head>
 <body>
@@ -96,6 +74,8 @@
             <input type="email" id="candidate-email" placeholder="E-mail">
             <input type="text" id="candidate-city" placeholder="Miasto">
             <input type="text" id="candidate-phone" placeholder="Telefon">
+            <label for="candidate-start-date">Data startu oddziału:</label>
+            <input type="date" id="candidate-start-date">
             <select id="candidate-employment">
                 <option value="">Wybierz formę zatrudnienia</option>
                 <option value="B2B">B2B</option>
@@ -109,35 +89,9 @@
             <div id="clients-section">
                 <div class="client">
                     <h4>Klient 1</h4>
-                    <div class="month-inputs">
-                        <input type="number" data-client="1" data-type="income" data-date="45809" placeholder="Przychody 45809">
-                        <input type="number" data-client="1" data-type="income" data-date="45840" placeholder="Przychody 45840">
-                        <input type="number" data-client="1" data-type="income" data-date="45871" placeholder="Przychody 45871">
-                        <input type="number" data-client="1" data-type="income" data-date="45902" placeholder="Przychody 45902">
-                        <input type="number" data-client="1" data-type="income" data-date="45933" placeholder="Przychody 45933">
-                        <input type="number" data-client="1" data-type="income" data-date="45964" placeholder="Przychody 45964">
-                        <input type="number" data-client="1" data-type="income" data-date="45995" placeholder="Przychody 45995">
-                        <input type="number" data-client="1" data-type="income" data-date="46026" placeholder="Przychody 46026">
-                        <input type="number" data-client="1" data-type="income" data-date="46057" placeholder="Przychody 46057">
-                        <input type="number" data-client="1" data-type="income" data-date="46088" placeholder="Przychody 46088">
-                        <input type="number" data-client="1" data-type="income" data-date="46119" placeholder="Przychody 46119">
-                        <input type="number" data-client="1" data-type="income" data-date="46150" placeholder="Przychody 46150">
-                    </div>
-                    <div class="month-inputs">
-                        <input type="number" data-client="1" data-type="cost" data-date="45809" placeholder="Koszty 45809">
-                        <input type="number" data-client="1" data-type="cost" data-date="45840" placeholder="Koszty 45840">
-                        <input type="number" data-client="1" data-type="cost" data-date="45871" placeholder="Koszty 45871">
-                        <input type="number" data-client="1" data-type="cost" data-date="45902" placeholder="Koszty 45902">
-                        <input type="number" data-client="1" data-type="cost" data-date="45933" placeholder="Koszty 45933">
-                        <input type="number" data-client="1" data-type="cost" data-date="45964" placeholder="Koszty 45964">
-                        <input type="number" data-client="1" data-type="cost" data-date="45995" placeholder="Koszty 45995">
-                        <input type="number" data-client="1" data-type="cost" data-date="46026" placeholder="Koszty 46026">
-                        <input type="number" data-client="1" data-type="cost" data-date="46057" placeholder="Koszty 46057">
-                        <input type="number" data-client="1" data-type="cost" data-date="46088" placeholder="Koszty 46088">
-                        <input type="number" data-client="1" data-type="cost" data-date="46119" placeholder="Koszty 46119">
-                        <input type="number" data-client="1" data-type="cost" data-date="46150" placeholder="Koszty 46150">
-                    </div>
-                    <input type="number" data-client="1" data-type="orders" placeholder="Liczba zleceń">
+                    <div class="month-inputs" id="client-1-incomes"></div>
+                    <div class="month-inputs" id="client-1-costs"></div>
+                    <div class="month-inputs" id="client-1-orders"></div>
                 </div>
             </div>
             <button onclick="addClient()">Dodaj kolejnego klienta</button>
@@ -236,47 +190,105 @@
         </div>
 
         <!-- Przyciski akcji -->
-        <button id="send-data" onclick="sendData()">Wyślij dane</button>
-        <button id="download-data" onclick="downloadData()">Pobierz dane jako JSON</button>
+        <button id="send-data" onclick="sendData()">Wyślij dane e-mailem</button>
+        <button id="download-excel" onclick="downloadExcel()">Pobierz dane jako Excel</button>
+        <button id="download-json" onclick="downloadJson()">Pobierz dane jako JSON</button>
         <button id="clear-data" onclick="clearData()">Wyczyść wszystkie dane</button>
     </div>
 
+    <!-- Biblioteki zewnętrzne -->
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
     <script>
         (function() {
-            emailjs.init("5Vf4_3IwKm09MW_ZZ"); // Twój EmailJS Public Key
+            emailjs.init("5Vf4_3IwKm09MW_ZZ"); // EmailJS Public Key
         })();
 
-        let clients = [{ incomes: {}, costs: {}, orders: 0 }];
+        let clients = [{ incomes: {}, costs: {}, orders: {} }];
         let employees = [{}];
         let vehicles = [{}];
         let candidate = {};
         let additionalInfo = { clientsInfo: [{}] };
 
-        // Wczytaj dane z localStorage
+        // Mapowanie miesięcy na kolumny Excela
+        const MONTH_COLUMNS = ['D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O'];
+
+        // Generowanie etykiet miesięcy na podstawie daty startu
+        function getMonthLabels(startDate) {
+            if (!startDate) return MONTH_COLUMNS.map((_, i) => `Miesiąc ${i + 1}`);
+            const date = new Date(startDate);
+            const months = [];
+            for (let i = 0; i < 12; i++) {
+                const month = new Date(date.getFullYear(), date.getMonth() + i, 1);
+                months.push(month.toLocaleString('pl-PL', { month: 'long', year: 'numeric' }).replace(' ', ' '));
+            }
+            return months;
+        }
+
+        // Aktualizacja pól klientów
+        function updateClientsSection() {
+            const startDate = document.getElementById('candidate-start-date').value;
+            const monthLabels = getMonthLabels(startDate);
+            const section = document.getElementById('clients-section');
+            section.innerHTML = '';
+            clients.forEach((client, index) => {
+                const div = document.createElement('div');
+                div.className = 'client';
+                div.innerHTML = `
+                    <h4>Klient ${index + 1}</h4>
+                    <div class="month-inputs" id="client-${index + 1}-incomes">
+                        ${monthLabels.map((label, i) => `
+                            <input type="number" data-client="${index + 1}" data-type="income" data-month="${label}" placeholder="Przychody ${label}" value="${client.incomes[label] || ''}">
+                        `).join('')}
+                    </div>
+                    <div class="month-inputs" id="client-${index + 1}-costs">
+                        ${monthLabels.map((label, i) => `
+                            <input type="number" data-client="${index + 1}" data-type="cost" data-month="${label}" placeholder="Koszty ${label}" value="${client.costs[label] || ''}">
+                        `).join('')}
+                    </div>
+                    <div class="month-inputs" id="client-${index + 1}-orders">
+                        ${monthLabels.map((label, i) => `
+                            <input type="number" data-client="${index + 1}" data-type="order" data-month="${label}" placeholder="Zlecenia ${label}" value="${client.orders[label] || ''}">
+                        `).join('')}
+                    </div>
+                `;
+                section.appendChild(div);
+            });
+        }
+
+        // Wczytywanie danych z localStorage
         window.onload = function() {
             const savedData = localStorage.getItem('budgetData');
             if (savedData) {
                 const data = JSON.parse(savedData);
-                clients = data.clients || [{ incomes: {}, costs: {}, orders: 0 }];
+                clients = data.clients || [{ incomes: {}, costs: {}, orders: {} }];
                 employees = data.employees || [{}];
                 vehicles = data.vehicles || [{}];
                 candidate = data.candidate || {};
                 additionalInfo = data.additionalInfo || { clientsInfo: [{}] };
+                document.getElementById('candidate-name').value = candidate.name || '';
+                document.getElementById('candidate-email').value = candidate.email || '';
+                document.getElementById('candidate-city').value = candidate.city || '';
+                document.getElementById('candidate-phone').value = candidate.phone || '';
+                document.getElementById('candidate-start-date').value = candidate.startDate || '';
+                document.getElementById('candidate-employment').value = candidate.employment || '';
                 updateClientsSection();
                 updateEmployeesSection();
                 updateVehiclesSection();
                 updateClientInfoSection();
                 updateTable();
             }
+            updateClientsSection();
         };
 
+        // Funkcje dodawania elementów
         function addClient() {
             if (clients.length < 10) {
-                clients.push({ incomes: {}, costs: {}, orders: 0 });
+                clients.push({ incomes: {}, costs: {}, orders: {} });
                 updateClientsSection();
             } else {
-                alert('Maksymalna liczba klientów to 10.');
+                alert('Maksymalna liczba klientów wynosi 10.');
             }
         }
 
@@ -303,32 +315,8 @@
                 additionalInfo.clientsInfo.push({});
                 updateClientInfoSection();
             } else {
-                alert('Maksymalna liczba klientów w informacjach to 10.');
+                alert('Maksymalna liczba klientów w informacjach dodatkowych wynosi 10.');
             }
-        }
-
-        function updateClientsSection() {
-            const section = document.getElementById('clients-section');
-            section.innerHTML = '';
-            clients.forEach((client, index) => {
-                const div = document.createElement('div');
-                div.className = 'client';
-                div.innerHTML = `
-                    <h4>Klient ${index + 1}</h4>
-                    <div class="month-inputs">
-                        ${['45809', '45840', '45871', '45902', '45933', '45964', '45995', '46026', '46057', '46088', '46119', '46150'].map(date => `
-                            <input type="number" data-client="${index + 1}" data-type="income" data-date="${date}" placeholder="Przychody ${date}" value="${client.incomes[date] || ''}">
-                        `).join('')}
-                    </div>
-                    <div class="month-inputs">
-                        ${['45809', '45840', '45871', '45902', '45933', '45964', '45995', '46026', '46057', '46088', '46119', '46150'].map(date => `
-                            <input type="number" data-client="${index + 1}" data-type="cost" data-date="${date}" placeholder="Koszty ${date}" value="${client.costs[date] || ''}">
-                        `).join('')}
-                    </div>
-                    <input type="number" data-client="${index + 1}" data-type="orders" placeholder="Liczba zleceń" value="${client.orders || ''}">
-                `;
-                section.appendChild(div);
-            });
         }
 
         function updateEmployeesSection() {
@@ -418,19 +406,23 @@
                 email: document.getElementById('candidate-email').value,
                 city: document.getElementById('candidate-city').value,
                 phone: document.getElementById('candidate-phone').value,
+                startDate: document.getElementById('candidate-start-date').value,
                 employment: document.getElementById('candidate-employment').value
             };
 
             clients = Array.from(document.querySelectorAll('.client')).map((div, index) => {
                 const incomes = {};
                 const costs = {};
+                const orders = {};
                 document.querySelectorAll(`.client input[data-client="${index + 1}"][data-type="income"]`).forEach(input => {
-                    if (input.value) incomes[input.dataset.date] = parseFloat(input.value);
+                    if (input.value) incomes[input.dataset.month] = parseFloat(input.value);
                 });
                 document.querySelectorAll(`.client input[data-client="${index + 1}"][data-type="cost"]`).forEach(input => {
-                    if (input.value) costs[input.dataset.date] = parseFloat(input.value);
+                    if (input.value) costs[input.dataset.month] = parseFloat(input.value);
                 });
-                const orders = parseInt(document.querySelector(`.client input[data-client="${index + 1}"][data-type="orders"]`).value) || 0;
+                document.querySelectorAll(`.client input[data-client="${index + 1}"][data-type="order"]`).forEach(input => {
+                    if (input.value) orders[input.dataset.month] = parseInt(input.value);
+                });
                 return { incomes, costs, orders };
             });
 
@@ -482,18 +474,19 @@
             const tableBody = document.getElementById('data-table-body');
             tableBody.innerHTML = '';
 
-            if (candidate.name || candidate.email || candidate.city || candidate.phone || candidate.employment) {
+            if (candidate.name || candidate.email || candidate.city || candidate.phone || candidate.startDate || candidate.employment) {
                 const row = document.createElement('tr');
-                row.innerHTML = `<td>Dane kandydata</td><td>Imię: ${candidate.name || ''}, E-mail: ${candidate.email || ''}, Miasto: ${candidate.city || ''}, Telefon: ${candidate.phone || ''}, Forma: ${candidate.employment || ''}</td>`;
+                row.innerHTML = `<td>Dane kandydata</td><td>Imię: ${candidate.name || ''}, E-mail: ${candidate.email || ''}, Miasto: ${candidate.city || ''}, Telefon: ${candidate.phone || ''}, Data startu: ${candidate.startDate || ''}, Forma: ${candidate.employment || ''}</td>`;
                 tableBody.appendChild(row);
             }
 
             clients.forEach((client, index) => {
-                const incomes = Object.entries(client.incomes).map(([date, value]) => `${date}: ${value.toFixed(2)} PLN`).join(', ');
-                const costs = Object.entries(client.costs).map(([date, value]) => `${date}: ${value.toFixed(2)} PLN`).join(', ');
-                if (incomes || costs || client.orders) {
+                const incomes = Object.entries(client.incomes).map(([month, value]) => `${month}: ${value.toFixed(2)} PLN`).join(', ');
+                const costs = Object.entries(client.costs).map(([month, value]) => `${month}: ${value.toFixed(2)} PLN`).join(', ');
+                const orders = Object.entries(client.orders).map(([month, value]) => `${month}: ${value}`).join(', ');
+                if (incomes || costs || orders) {
                     const row = document.createElement('tr');
-                    row.innerHTML = `<td>Klient ${index + 1}</td><td>Przychody: ${incomes || 'Brak'}, Koszty: ${costs || 'Brak'}, Zlecenia: ${client.orders || 0}</td>`;
+                    row.innerHTML = `<td>Klient ${index + 1}</td><td>Przychody: ${incomes || 'Brak'}, Koszty: ${costs || 'Brak'}, Zlecenia: ${orders || 'Brak'}</td>`;
                     tableBody.appendChild(row);
                 }
             });
@@ -529,7 +522,177 @@
             });
         }
 
-        function downloadData() {
+        function generateExcel() {
+            const wb = XLSX.utils.book_new();
+            const startDate = candidate.startDate || new Date().toISOString().split('T')[0];
+            const monthLabels = getMonthLabels(startDate);
+
+            // Arkusz "Informacje ogólne"
+            const ws_info = XLSX.utils.json_to_sheet([{
+                "Imię": candidate.name || "",
+                "E-mail": candidate.email || "",
+                "Miasto": candidate.city || "",
+                "Telefon": candidate.phone || "",
+                "Data startu oddziału": candidate.startDate || "",
+                "Forma zatrudnienia": candidate.employment || ""
+            }], { origin: "B2" });
+            XLSX.utils.book_append_sheet(wb, ws_info, "Informacje ogólne");
+
+            // Arkusz "Klienci"
+            const ws_clients_data = [];
+            clients.forEach((client, idx) => {
+                const incomes = client.incomes || {};
+                const costs = client.costs || {};
+                const orders = client.orders || {};
+                const row_przychody = { "Opis": `Przychody Klient ${idx + 1}` };
+                const row_koszty = { "Opis": `Koszty Klient ${idx + 1}` };
+                const row_zlecenia = { "Opis": `Zlecenia Klient ${idx + 1}` };
+                monthLabels.forEach((month, i) => {
+                    row_przychody[MONTH_COLUMNS[i]] = incomes[month] || 0;
+                    row_koszty[MONTH_COLUMNS[i]] = costs[month] || 0;
+                    row_zlecenia[MONTH_COLUMNS[i]] = orders[month] || 0;
+                });
+                const baseRow = 6 + 5 * idx;
+                XLSX.utils.sheet_add_json(ws_clients_data, [row_przychody], { origin: `B${baseRow}` });
+                XLSX.utils.sheet_add_json(ws_clients_data, [row_koszty], { origin: `B${baseRow + 1}` });
+                XLSX.utils.sheet_add_json(ws_clients_data, [row_zlecenia], { origin: `B${baseRow + 4}` });
+            });
+            const ws_clients = XLSX.utils.json_to_sheet(ws_clients_data, { origin: "B5" });
+            XLSX.utils.book_append_sheet(wb, ws_clients, "Klienci");
+
+            // Arkusz "Zatrudnienie"
+            const ws_employees = XLSX.utils.json_to_sheet(employees.map((emp, idx) => ({
+                "Imię": emp.name || "",
+                "Data zatrudnienia": emp.hireDate || "",
+                "Rola": emp.role || "",
+                "Kwota": emp.salary || 0,
+                "Forma zatrudnienia": emp.employment || ""
+            })), { origin: "B20" });
+            XLSX.utils.book_append_sheet(wb, ws_employees, "Zatrudnienie");
+
+            // Arkusz "Pojazdy"
+            const ws_vehicles = XLSX.utils.json_to_sheet(vehicles.map((veh, idx) => ({
+                "Opis": veh.description || "",
+                "Od kiedy": veh.startDate || "",
+                "Ilość": veh.quantity || 0
+            })), { origin: "B30" });
+            XLSX.utils.book_append_sheet(wb, ws_vehicles, "Pojazdy");
+
+            // Arkusz "Dodatkowe"
+            const ws_additional = XLSX.utils.json_to_sheet([{
+                "Forma pracy oddziału": additionalInfo.branchWorkType || "",
+                "Koszty najmu": additionalInfo.officeRentCost || 0,
+                "Giełda Timo": additionalInfo.exchangeTimo ? "Tak" : "Nie",
+                "Giełda Trans": additionalInfo.exchangeTrans ? "Tak" : "Nie",
+                "Inne giełdy": additionalInfo.exchangeOther || "",
+                "Baza przewoźników": additionalInfo.hasCarriers ? "Tak" : "Nie",
+                "Komentarz przewoźników": additionalInfo.carriersComment || "",
+                "Uwagi kandydata": additionalInfo.candidateComments || ""
+            }], { origin: "B40" });
+            const ws_clients_info = XLSX.utils.json_to_sheet(additionalInfo.clientsInfo.map((info, idx) => ({
+                "Typ klienta": info.clientType || "",
+                "Rodzaj transportu": info.transportType || "",
+                "Przetarg/Giełda": info.tenderType || "",
+                "Data wdrożenia": info.tenderDate || "",
+                "Kierunki": info.directions || "",
+                "Rodzaj ładunków": info.loadType || "",
+                "Umowy": info.hasContracts ? "Tak" : "Nie"
+            })), { origin: "B50" });
+            XLSX.utils.sheet_add_json(ws_additional, ws_clients_info.data, { origin: "B50" });
+            XLSX.utils.book_append_sheet(wb, ws_additional, "Dodatkowe");
+
+            return wb;
+        }
+
+        function downloadExcel() {
+            try {
+                saveData();
+                const wb = generateExcel();
+                XLSX.writeFile(wb, `GT_Budzet_${candidate.name || 'Anonim'}_${new Date().toISOString().split('T')[0]}.xlsx`);
+                alert('Plik Excel został wygenerowany i pobrany!');
+            } catch (error) {
+                alert('Błąd podczas generowania pliku Excel: ' + error.message);
+            }
+        }
+
+        function sendData() {
+            saveData();
+            if (!candidate.name || !candidate.email) {
+                alert('Proszę wypełnić imię i e-mail kandydata przed wysłaniem.');
+                return;
+            }
+
+            const monthLabels = getMonthLabels(candidate.startDate);
+            const emailContent = `
+                Dane kandydata:
+                Imię: ${candidate.name || ''}
+                E-mail: ${candidate.email || ''}
+                Miasto: ${candidate.city || ''}
+                Telefon: ${candidate.phone || ''}
+                Data startu oddziału: ${candidate.startDate || ''}
+                Forma zatrudnienia: ${candidate.employment || ''}
+
+                Klienci:
+                ${clients.map((client, idx) => `
+                    Klient ${idx + 1}:
+                    Przychody: ${Object.entries(client.incomes).map(([month, value]) => `${month}: ${value.toFixed(2)} PLN`).join(', ') || 'Brak'}
+                    Koszty: ${Object.entries(client.costs).map(([month, value]) => `${month}: ${value.toFixed(2)} PLN`).join(', ') || 'Brak'}
+                    Zlecenia: ${Object.entries(client.orders).map(([month, value]) => `${month}: ${value}`).join(', ') || 'Brak'}
+                `).join('\n')}
+
+                Zatrudnienie:
+                ${employees.map((emp, idx) => `
+                    Pracownik ${idx + 1}:
+                    Imię: ${emp.name || ''}
+                    Data zatrudnienia: ${emp.hireDate || ''}
+                    Rola: ${emp.role || ''}
+                    Kwota: ${emp.salary ? emp.salary.toFixed(2) : '0'} PLN
+                    Forma: ${emp.employment || ''}
+                `).join('\n')}
+
+                Pojazdy służbowe:
+                ${vehicles.map((veh, idx) => `
+                    Pojazd ${idx + 1}:
+                    Opis: ${veh.description || ''}
+                    Od kiedy: ${veh.startDate || ''}
+                    Ilość: ${veh.quantity || 0}
+                `).join('\n')}
+
+                Uzupełniające informacje:
+                Forma pracy oddziału: ${additionalInfo.branchWorkType || ''}
+                Koszty najmu: ${additionalInfo.officeRentCost ? additionalInfo.officeRentCost.toFixed(2) : '0'} PLN
+                Giełdy:
+                - Timo: ${additionalInfo.exchangeTimo ? 'Tak' : 'Nie'}
+                - Trans: ${additionalInfo.exchangeTrans ? 'Tak' : 'Nie'}
+                - Inne: ${additionalInfo.exchangeOther || ''}
+                Baza przewoźników: ${additionalInfo.hasCarriers ? 'Tak' : 'Nie'}
+                Komentarz przewoźników: ${additionalInfo.carriersComment || ''}
+                Informacje o klientach:
+                ${additionalInfo.clientsInfo.map((info, idx) => `
+                    Klient ${idx + 1}:
+                    Typ: ${info.clientType || ''}
+                    Transport: ${info.transportType || ''}
+                    Przetarg/Giełda: ${info.tenderType || ''}
+                    Data wdrożenia: ${info.tenderDate || ''}
+                    Kierunki: ${info.directions || ''}
+                    Ładunki: ${info.loadType || ''}
+                    Umowy: ${info.hasContracts ? 'Tak' : 'Nie'}
+                `).join('\n')}
+                Uwagi kandydata: ${additionalInfo.candidateComments || ''}
+            `;
+
+            emailjs.send('service_a1360jq', 'template_5q57m3u', {
+                from_name: candidate.name || 'Użytkownik formularza',
+                email: candidate.email,
+                message: emailContent.trim(),
+                timestamp: new Date().toISOString()
+            }).then(
+                () => alert('Dane zostały wysłane na e-mail!'),
+                (error) => alert('Błąd podczas wysyłania: ' + error.text)
+            );
+        }
+
+        function downloadJson() {
             saveData();
             const budgetData = {
                 candidate,
@@ -551,78 +714,10 @@
             URL.revokeObjectURL(url);
         }
 
-        function sendData() {
-            saveData();
-            if (!candidate.name || !candidate.email) {
-                alert('Proszę wypełnić imię i e-mail kandydata przed wysłaniem.');
-                return;
-            }
-            const budgetText = `
-Dane kandydata:
-- Imię: ${candidate.name || 'Brak'}
-- E-mail: ${candidate.email || 'Brak'}
-- Miasto: ${candidate.city || 'Brak'}
-- Telefon: ${candidate.phone || 'Brak'}
-- Forma zatrudnienia: ${candidate.employment || 'Brak'}
-
-Klienci:
-${clients.map((client, index) => `
-Klient ${index + 1}:
-- Przychody: ${Object.entries(client.incomes).map(([date, value]) => `${date}: ${value.toFixed(2)} PLN`).join(', ') || 'Brak'}
-- Koszty: ${Object.entries(client.costs).map(([date, value]) => `${date}: ${value.toFixed(2)} PLN`).join(', ') || 'Brak'}
-- Liczba zleceń: ${client.orders || 0}
-`).join('\n')}
-
-Zatrudnienie:
-${employees.map((employee, index) => `
-Pracownik ${index + 1}:
-- Imię: ${employee.name || 'Brak'}
-- Data zatrudnienia: ${employee.hireDate || 'Brak'}
-- Rola: ${employee.role || 'Brak'}
-- Kwota: ${employee.salary ? employee.salary.toFixed(2) : '0'} PLN
-- Forma zatrudnienia: ${employee.employment || 'Brak'}
-`).join('\n')}
-
-Pojazdy służbowe:
-${vehicles.map((vehicle, index) => `
-Pojazd ${index + 1}:
-- Opis: ${vehicle.description || 'Brak'}
-- Od kiedy: ${vehicle.startDate || 'Brak'}
-- Ilość: ${vehicle.quantity || 0}
-`).join('\n')}
-
-Uzupełniające informacje:
-- Forma pracy oddziału: ${additionalInfo.branchWorkType || 'Brak'}
-- Koszty najmu biura: ${additionalInfo.officeRentCost ? additionalInfo.officeRentCost.toFixed(2) : '0'} PLN
-- Giełdy: Timo: ${additionalInfo.exchangeTimo ? 'Tak' : 'Nie'}, Trans: ${additionalInfo.exchangeTrans ? 'Tak' : 'Nie'}, Inne: ${additionalInfo.exchangeOther || 'Brak'}
-- Baza przewoźników: ${additionalInfo.hasCarriers ? 'Tak' : 'Nie'}
-- Komentarz do przewoźników: ${additionalInfo.carriersComment || 'Brak'}
-- Informacje o klientach:
-${additionalInfo.clientsInfo.map((info, index) => `
-Klient ${index + 1}:
-- Typ: ${info.clientType || 'Brak'}
-- Transport: ${info.transportType || 'Brak'}
-- Przetarg/Giełda: ${info.tenderType || 'Brak'}
-- Data wdrożenia: ${info.tenderDate || 'Brak'}
-- Kierunki: ${info.directions || 'Brak'}
-- Ładunki: ${info.loadType || 'Brak'}
-- Umowy: ${info.hasContracts ? 'Tak' : 'Nie'}
-`).join('\n')}
-- Uwagi kandydata: ${additionalInfo.candidateComments || 'Brak'}
-            `;
-            emailjs.send('service_a1360jq', 'template_ujx0hdd', {
-                from_name: candidate.name || 'Użytkownik formularza',
-                budget_data: budgetText
-            }).then(
-                () => alert('Dane zostały wysłane!'),
-                (error) => alert('Błąd podczas wysyłania: ' + error.text)
-            );
-        }
-
         function clearData() {
             if (confirm('Czy na pewno chcesz wyczyścić wszystkie dane?')) {
                 candidate = {};
-                clients = [{ incomes: {}, costs: {}, orders: 0 }];
+                clients = [{ incomes: {}, costs: {}, orders: {} }];
                 employees = [{}];
                 vehicles = [{}];
                 additionalInfo = { clientsInfo: [{}] };
@@ -639,9 +734,12 @@ Klient ${index + 1}:
             }
         }
 
-        // Automatyczne zapisywanie po zmianie danych
+        // Automatyczne zapisywanie i aktualizacja pól klientów po zmianie danych
         document.querySelectorAll('input, select, textarea').forEach(element => {
-            element.addEventListener('change', saveData);
+            element.addEventListener('change', () => {
+                saveData();
+                updateClientsSection();
+            });
         });
     </script>
 </body>
