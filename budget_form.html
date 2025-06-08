@@ -1,0 +1,687 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formularz Budżetu GT</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #F4F4F4; /* Szare tło strony */
+        }
+        .budget-container {
+            background-color: #FFFFFF; /* Białe tło formularza */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border: 2px solid #000000; /* Czarna ramka */
+        }
+        h2, h3, h4, h5 {
+            color: #F05A28; /* Pomarańczowe nagłówki */
+        }
+        input, select, textarea, button {
+            margin: 10px 0;
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #000000; /* Czarna ramka pól */
+            border-radius: 4px;
+        }
+        button {
+            background-color: #F05A28; /* Pomarańczowe tło przycisków */
+            color: #FFFFFF; /* Biały tekst na przyciskach */
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #D94A20; /* Ciemniejszy pomarańczowy na hover */
+        }
+        #send-data, #download-data {
+            background-color: #000000; /* Czarne tło dla przycisków wysyłania i pobierania */
+            color: #FFFFFF;
+        }
+        #send-data:hover, #download-data:hover {
+            background-color: #333333; /* Ciemniejszy szary na hover */
+        }
+        #clear-data {
+            background-color: #F05A28; /* Pomarańczowy dla przycisku czyszczenia */
+        }
+        #clear-data:hover {
+            background-color: #D94A20;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border: 1px solid #000000; /* Czarna ramka tabeli */
+        }
+        th, td {
+            border: 1px solid #000000;
+            padding: 8px;
+            text-align: left;
+            color: #000000; /* Czarny tekst w tabeli */
+        }
+        th {
+            background-color: #F05A28; /* Pomarańczowe tło nagłówków tabeli */
+            color: #FFFFFF; /* Biały tekst nagłówków */
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .month-inputs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .month-inputs input {
+            width: 100px;
+        }
+        label {
+            color: #000000; /* Czarny tekst etykiet */
+        }
+    </style>
+</head>
+<body>
+    <div class="budget-container">
+        <h2>Formularz Budżetu GT</h2>
+
+        <!-- Sekcja: Dane kandydata -->
+        <div class="section">
+            <h3>Dane kandydata</h3>
+            <input type="text" id="candidate-name" placeholder="Imię i nazwisko">
+            <input type="email" id="candidate-email" placeholder="E-mail">
+            <input type="text" id="candidate-city" placeholder="Miasto">
+            <input type="text" id="candidate-phone" placeholder="Telefon">
+            <select id="candidate-employment">
+                <option value="">Wybierz formę zatrudnienia</option>
+                <option value="B2B">B2B</option>
+                <option value="Umowa o pracę">Umowa o pracę</option>
+            </select>
+        </div>
+
+        <!-- Sekcja: Klienci -->
+        <div class="section">
+            <h3>Dane klientów</h3>
+            <div id="clients-section">
+                <div class="client">
+                    <h4>Klient 1</h4>
+                    <div class="month-inputs">
+                        <input type="number" data-client="1" data-type="income" data-date="45809" placeholder="Przychody 45809">
+                        <input type="number" data-client="1" data-type="income" data-date="45840" placeholder="Przychody 45840">
+                        <input type="number" data-client="1" data-type="income" data-date="45871" placeholder="Przychody 45871">
+                        <input type="number" data-client="1" data-type="income" data-date="45902" placeholder="Przychody 45902">
+                        <input type="number" data-client="1" data-type="income" data-date="45933" placeholder="Przychody 45933">
+                        <input type="number" data-client="1" data-type="income" data-date="45964" placeholder="Przychody 45964">
+                        <input type="number" data-client="1" data-type="income" data-date="45995" placeholder="Przychody 45995">
+                        <input type="number" data-client="1" data-type="income" data-date="46026" placeholder="Przychody 46026">
+                        <input type="number" data-client="1" data-type="income" data-date="46057" placeholder="Przychody 46057">
+                        <input type="number" data-client="1" data-type="income" data-date="46088" placeholder="Przychody 46088">
+                        <input type="number" data-client="1" data-type="income" data-date="46119" placeholder="Przychody 46119">
+                        <input type="number" data-client="1" data-type="income" data-date="46150" placeholder="Przychody 46150">
+                    </div>
+                    <div class="month-inputs">
+                        <input type="number" data-client="1" data-type="cost" data-date="45809" placeholder="Koszty 45809">
+                        <input type="number" data-client="1" data-type="cost" data-date="45840" placeholder="Koszty 45840">
+                        <input type="number" data-client="1" data-type="cost" data-date="45871" placeholder="Koszty 45871">
+                        <input type="number" data-client="1" data-type="cost" data-date="45902" placeholder="Koszty 45902">
+                        <input type="number" data-client="1" data-type="cost" data-date="45933" placeholder="Koszty 45933">
+                        <input type="number" data-client="1" data-type="cost" data-date="45964" placeholder="Koszty 45964">
+                        <input type="number" data-client="1" data-type="cost" data-date="45995" placeholder="Koszty 45995">
+                        <input type="number" data-client="1" data-type="cost" data-date="46026" placeholder="Koszty 46026">
+                        <input type="number" data-client="1" data-type="cost" data-date="46057" placeholder="Koszty 46057">
+                        <input type="number" data-client="1" data-type="cost" data-date="46088" placeholder="Koszty 46088">
+                        <input type="number" data-client="1" data-type="cost" data-date="46119" placeholder="Koszty 46119">
+                        <input type="number" data-client="1" data-type="cost" data-date="46150" placeholder="Koszty 46150">
+                    </div>
+                    <input type="number" data-client="1" data-type="orders" placeholder="Liczba zleceń">
+                </div>
+            </div>
+            <button onclick="addClient()">Dodaj kolejnego klienta</button>
+        </div>
+
+        <!-- Sekcja: Zatrudnienie -->
+        <div class="section">
+            <h3>Zatrudnienie</h3>
+            <div id="employees-section">
+                <div class="employee">
+                    <h4>Pracownik 1</h4>
+                    <input type="text" data-employee="1" data-type="name" placeholder="Imię i nazwisko">
+                    <input type="date" data-employee="1" data-type="hire-date" placeholder="Data zatrudnienia">
+                    <input type="text" data-employee="1" data-type="role" placeholder="Rola">
+                    <input type="number" data-employee="1" data-type="salary" placeholder="Kwota [PLN]">
+                    <select data-employee="1" data-type="employment">
+                        <option value="">Wybierz formę zatrudnienia</option>
+                        <option value="B2B">B2B</option>
+                        <option value="Umowa o pracę">Umowa o pracę</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="addEmployee()">Dodaj kolejnego pracownika</button>
+        </div>
+
+        <!-- Sekcja: Pojazdy służbowe -->
+        <div class="section">
+            <h3>Pojazdy służbowe</h3>
+            <div id="vehicles-section">
+                <div class="vehicle">
+                    <h4>Pojazd 1</h4>
+                    <input type="text" data-vehicle="1" data-type="description" placeholder="Opis pojazdu">
+                    <input type="date" data-vehicle="1" data-type="start-date" placeholder="Od kiedy">
+                    <input type="number" data-vehicle="1" data-type="quantity" placeholder="Ilość">
+                </div>
+            </div>
+            <button onclick="addVehicle()">Dodaj kolejny pojazd</button>
+        </div>
+
+        <!-- Sekcja: Uzupełniające informacje -->
+        <div class="section">
+            <h3>Uzupełniające informacje</h3>
+            <input type="text" id="branch-work-type" placeholder="Forma pracy oddziału">
+            <input type="number" id="office-rent-cost" placeholder="Szacowane miesięczne koszty najmu biura (PLN)">
+            <label><input type="checkbox" id="exchange-timo"> Dostęp do giełdy Timo</label>
+            <label><input type="checkbox" id="exchange-trans"> Dostęp do giełdy Trans</label>
+            <input type="text" id="exchange-other" placeholder="Inne giełdy">
+            <label><input type="checkbox" id="has-carriers" onchange="toggleCarriersComment()"> Posiada bazę przewoźników</label>
+            <textarea id="carriers-comment" placeholder="Komentarz do bazy przewoźników" style="display: none;"></textarea>
+            <div id="clients-info-section">
+                <h4>Informacje o klientach</h4>
+                <div class="client-info">
+                    <h5>Klient 1</h5>
+                    <select data-client="1" data-type="client-type">
+                        <option value="">Typ klienta</option>
+                        <option value="Bezpośredni">Bezpośredni</option>
+                        <option value="Operator logistyczny">Operator logistyczny</option>
+                        <option value="Spedycyjny">Spedycyjny</option>
+                    </select>
+                    <select data-client="1" data-type="transport-type">
+                        <option value="">Rodzaj transportu</option>
+                        <option value="Krajowy">Krajowy</option>
+                        <option value="Zagraniczny">Zagraniczny</option>
+                    </select>
+                    <select data-client="1" data-type="tender-type">
+                        <option value="">Typ klienta</option>
+                        <option value="Przetargowy">Przetargowy</option>
+                        <option value="Giełdowy">Giełdowy</option>
+                    </select>
+                    <input type="date" data-client="1" data-type="tender-date" placeholder="Data wdrożenia (jeśli przetargowy)">
+                    <input type="text" data-client="1" data-type="directions" placeholder="Główne kierunki">
+                    <select data-client="1" data-type="load-type">
+                        <option value="">Rodzaj ładunków</option>
+                        <option value="FTL">FTL</option>
+                        <option value="LTL">LTL</option>
+                    </select>
+                    <label><input type="checkbox" data-client="1" data-type="has-contracts"> Związany umowami z poprzednią firmą</label>
+                </div>
+            </div>
+            <button onclick="addClientInfo()">Dodaj informacje o kolejnym kliencie</button>
+            <textarea id="candidate-comments" placeholder="Opis / Komentarz / Uwagi kandydata"></textarea>
+        </div>
+
+        <!-- Podgląd danych -->
+        <div class="section">
+            <h3>Podgląd danych</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Sekcja</th>
+                        <th>Dane</th>
+                    </tr>
+                </thead>
+                <tbody id="data-table-body"></tbody>
+            </table>
+        </div>
+
+        <!-- Przyciski akcji -->
+        <button id="send-data" onclick="sendData()">Wyślij dane</button>
+        <button id="download-data" onclick="downloadData()">Pobierz dane jako JSON</button>
+        <button id="clear-data" onclick="clearData()">Wyczyść wszystkie dane</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script>
+        (function() {
+            emailjs.init("5Vf4_3IwKm09MW_ZZ"); // Twój EmailJS Public Key
+        })();
+
+        let clients = [{ incomes: {}, costs: {}, orders: 0 }];
+        let employees = [{}];
+        let vehicles = [{}];
+        let candidate = {};
+        let additionalInfo = { clientsInfo: [{}] };
+
+        // Wczytaj dane z localStorage
+        window.onload = function() {
+            const savedData = localStorage.getItem('budgetData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                clients = data.clients || [{ incomes: {}, costs: {}, orders: 0 }];
+                employees = data.employees || [{}];
+                vehicles = data.vehicles || [{}];
+                candidate = data.candidate || {};
+                additionalInfo = data.additionalInfo || { clientsInfo: [{}] };
+                updateClientsSection();
+                updateEmployeesSection();
+                updateVehiclesSection();
+                updateClientInfoSection();
+                updateTable();
+            }
+        };
+
+        function addClient() {
+            if (clients.length < 10) {
+                clients.push({ incomes: {}, costs: {}, orders: 0 });
+                updateClientsSection();
+            } else {
+                alert('Maksymalna liczba klientów to 10.');
+            }
+        }
+
+        function addEmployee() {
+            if (employees.length < 15) {
+                employees.push({});
+                updateEmployeesSection();
+            } else {
+                alert('Maksymalna liczba pracowników to 15.');
+            }
+        }
+
+        function addVehicle() {
+            if (vehicles.length < 5) {
+                vehicles.push({});
+                updateVehiclesSection();
+            } else {
+                alert('Maksymalna liczba pojazdów to 5.');
+            }
+        }
+
+        function addClientInfo() {
+            if (additionalInfo.clientsInfo.length < 10) {
+                additionalInfo.clientsInfo.push({});
+                updateClientInfoSection();
+            } else {
+                alert('Maksymalna liczba klientów w informacjach to 10.');
+            }
+        }
+
+        function updateClientsSection() {
+            const section = document.getElementById('clients-section');
+            section.innerHTML = '';
+            clients.forEach((client, index) => {
+                const div = document.createElement('div');
+                div.className = 'client';
+                div.innerHTML = `
+                    <h4>Klient ${index + 1}</h4>
+                    <div class="month-inputs">
+                        ${['45809', '45840', '45871', '45902', '45933', '45964', '45995', '46026', '46057', '46088', '46119', '46150'].map(date => `
+                            <input type="number" data-client="${index + 1}" data-type="income" data-date="${date}" placeholder="Przychody ${date}" value="${client.incomes[date] || ''}">
+                        `).join('')}
+                    </div>
+                    <div class="month-inputs">
+                        ${['45809', '45840', '45871', '45902', '45933', '45964', '45995', '46026', '46057', '46088', '46119', '46150'].map(date => `
+                            <input type="number" data-client="${index + 1}" data-type="cost" data-date="${date}" placeholder="Koszty ${date}" value="${client.costs[date] || ''}">
+                        `).join('')}
+                    </div>
+                    <input type="number" data-client="${index + 1}" data-type="orders" placeholder="Liczba zleceń" value="${client.orders || ''}">
+                `;
+                section.appendChild(div);
+            });
+        }
+
+        function updateEmployeesSection() {
+            const section = document.getElementById('employees-section');
+            section.innerHTML = '';
+            employees.forEach((employee, index) => {
+                const div = document.createElement('div');
+                div.className = 'employee';
+                div.innerHTML = `
+                    <h4>Pracownik ${index + 1}</h4>
+                    <input type="text" data-employee="${index + 1}" data-type="name" placeholder="Imię i nazwisko" value="${employee.name || ''}">
+                    <input type="date" data-employee="${index + 1}" data-type="hire-date" placeholder="Data zatrudnienia" value="${employee.hireDate || ''}">
+                    <input type="text" data-employee="${index + 1}" data-type="role" placeholder="Rola" value="${employee.role || ''}">
+                    <input type="number" data-employee="${index + 1}" data-type="salary" placeholder="Kwota [PLN]" value="${employee.salary || ''}">
+                    <select data-employee="${index + 1}" data-type="employment">
+                        <option value="">Wybierz formę zatrudnienia</option>
+                        <option value="B2B" ${employee.employment === 'B2B' ? 'selected' : ''}>B2B</option>
+                        <option value="Umowa o pracę" ${employee.employment === 'Umowa o pracę' ? 'selected' : ''}>Umowa o pracę</option>
+                    </select>
+                `;
+                section.appendChild(div);
+            });
+        }
+
+        function updateVehiclesSection() {
+            const section = document.getElementById('vehicles-section');
+            section.innerHTML = '';
+            vehicles.forEach((vehicle, index) => {
+                const div = document.createElement('div');
+                div.className = 'vehicle';
+                div.innerHTML = `
+                    <h4>Pojazd ${index + 1}</h4>
+                    <input type="text" data-vehicle="${index + 1}" data-type="description" placeholder="Opis pojazdu" value="${vehicle.description || ''}">
+                    <input type="date" data-vehicle="${index + 1}" data-type="start-date" placeholder="Od kiedy" value="${vehicle.startDate || ''}">
+                    <input type="number" data-vehicle="${index + 1}" data-type="quantity" placeholder="Ilość" value="${vehicle.quantity || ''}">
+                `;
+                section.appendChild(div);
+            });
+        }
+
+        function updateClientInfoSection() {
+            const section = document.getElementById('clients-info-section');
+            section.innerHTML = '<h4>Informacje o klientach</h4>';
+            additionalInfo.clientsInfo.forEach((info, index) => {
+                const div = document.createElement('div');
+                div.className = 'client-info';
+                div.innerHTML = `
+                    <h5>Klient ${index + 1}</h5>
+                    <select data-client="${index + 1}" data-type="client-type">
+                        <option value="">Typ klienta</option>
+                        <option value="Bezpośredni" ${info.clientType === 'Bezpośredni' ? 'selected' : ''}>Bezpośredni</option>
+                        <option value="Operator logistyczny" ${info.clientType === 'Operator logistyczny' ? 'selected' : ''}>Operator logistyczny</option>
+                        <option value="Spedycyjny" ${info.clientType === 'Spedycyjny' ? 'selected' : ''}>Spedycyjny</option>
+                    </select>
+                    <select data-client="${index + 1}" data-type="transport-type">
+                        <option value="">Rodzaj transportu</option>
+                        <option value="Krajowy" ${info.transportType === 'Krajowy' ? 'selected' : ''}>Krajowy</option>
+                        <option value="Zagraniczny" ${info.transportType === 'Zagraniczny' ? 'selected' : ''}>Zagraniczny</option>
+                    </select>
+                    <select data-client="${index + 1}" data-type="tender-type">
+                        <option value="">Typ klienta</option>
+                        <option value="Przetargowy" ${info.tenderType === 'Przetargowy' ? 'selected' : ''}>Przetargowy</option>
+                        <option value="Giełdowy" ${info.tenderType === 'Giełdowy' ? 'selected' : ''}>Giełdowy</option>
+                    </select>
+                    <input type="date" data-client="${index + 1}" data-type="tender-date" placeholder="Data wdrożenia (jeśli przetargowy)" value="${info.tenderDate || ''}">
+                    <input type="text" data-client="${index + 1}" data-type="directions" placeholder="Główne kierunki" value="${info.directions || ''}">
+                    <select data-client="${index + 1}" data-type="load-type">
+                        <option value="">Rodzaj ładunków</option>
+                        <option value="FTL" ${info.loadType === 'FTL' ? 'selected' : ''}>FTL</option>
+                        <option value="LTL" ${info.loadType === 'LTL' ? 'selected' : ''}>LTL</option>
+                    </select>
+                    <label><input type="checkbox" data-client="${index + 1}" data-type="has-contracts" ${info.hasContracts ? 'checked' : ''}> Związany umowami z poprzednią firmą</label>
+                `;
+                section.appendChild(div);
+            });
+        }
+
+        function toggleCarriersComment() {
+            const checkbox = document.getElementById('has-carriers');
+            const comment = document.getElementById('carriers-comment');
+            comment.style.display = checkbox.checked ? 'block' : 'none';
+        }
+
+        function saveData() {
+            candidate = {
+                name: document.getElementById('candidate-name').value,
+                email: document.getElementById('candidate-email').value,
+                city: document.getElementById('candidate-city').value,
+                phone: document.getElementById('candidate-phone').value,
+                employment: document.getElementById('candidate-employment').value
+            };
+
+            clients = Array.from(document.querySelectorAll('.client')).map((div, index) => {
+                const incomes = {};
+                const costs = {};
+                document.querySelectorAll(`.client input[data-client="${index + 1}"][data-type="income"]`).forEach(input => {
+                    if (input.value) incomes[input.dataset.date] = parseFloat(input.value);
+                });
+                document.querySelectorAll(`.client input[data-client="${index + 1}"][data-type="cost"]`).forEach(input => {
+                    if (input.value) costs[input.dataset.date] = parseFloat(input.value);
+                });
+                const orders = parseInt(document.querySelector(`.client input[data-client="${index + 1}"][data-type="orders"]`).value) || 0;
+                return { incomes, costs, orders };
+            });
+
+            employees = Array.from(document.querySelectorAll('.employee')).map((div, index) => {
+                return {
+                    name: document.querySelector(`.employee input[data-employee="${index + 1}"][data-type="name"]`).value,
+                    hireDate: document.querySelector(`.employee input[data-employee="${index + 1}"][data-type="hire-date"]`).value,
+                    role: document.querySelector(`.employee input[data-employee="${index + 1}"][data-type="role"]`).value,
+                    salary: parseFloat(document.querySelector(`.employee input[data-employee="${index + 1}"][data-type="salary"]`).value) || 0,
+                    employment: document.querySelector(`.employee select[data-employee="${index + 1}"][data-type="employment"]`).value
+                };
+            });
+
+            vehicles = Array.from(document.querySelectorAll('.vehicle')).map((div, index) => {
+                return {
+                    description: document.querySelector(`.vehicle input[data-vehicle="${index + 1}"][data-type="description"]`).value,
+                    startDate: document.querySelector(`.vehicle input[data-vehicle="${index + 1}"][data-type="start-date"]`).value,
+                    quantity: parseInt(document.querySelector(`.vehicle input[data-vehicle="${index + 1}"][data-type="quantity"]`).value) || 0
+                };
+            });
+
+            additionalInfo = {
+                branchWorkType: document.getElementById('branch-work-type').value,
+                officeRentCost: parseFloat(document.getElementById('office-rent-cost').value) || 0,
+                exchangeTimo: document.getElementById('exchange-timo').checked,
+                exchangeTrans: document.getElementById('exchange-trans').checked,
+                exchangeOther: document.getElementById('exchange-other').value,
+                hasCarriers: document.getElementById('has-carriers').checked,
+                carriersComment: document.getElementById('carriers-comment').value,
+                clientsInfo: Array.from(document.querySelectorAll('.client-info')).map((div, index) => {
+                    return {
+                        clientType: document.querySelector(`.client-info select[data-client="${index + 1}"][data-type="client-type"]`).value,
+                        transportType: document.querySelector(`.client-info select[data-client="${index + 1}"][data-type="transport-type"]`).value,
+                        tenderType: document.querySelector(`.client-info select[data-client="${index + 1}"][data-type="tender-type"]`).value,
+                        tenderDate: document.querySelector(`.client-info input[data-client="${index + 1}"][data-type="tender-date"]`).value,
+                        directions: document.querySelector(`.client-info input[data-client="${index + 1}"][data-type="directions"]`).value,
+                        loadType: document.querySelector(`.client-info select[data-client="${index + 1}"][data-type="load-type"]`).value,
+                        hasContracts: document.querySelector(`.client-info input[data-client="${index + 1}"][data-type="has-contracts"]`).checked
+                    };
+                }),
+                candidateComments: document.getElementById('candidate-comments').value
+            };
+
+            localStorage.setItem('budgetData', JSON.stringify({ candidate, clients, employees, vehicles, additionalInfo }));
+            updateTable();
+        }
+
+        function updateTable() {
+            const tableBody = document.getElementById('data-table-body');
+            tableBody.innerHTML = '';
+
+            if (candidate.name || candidate.email || candidate.city || candidate.phone || candidate.employment) {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>Dane kandydata</td><td>Imię: ${candidate.name || ''}, E-mail: ${candidate.email || ''}, Miasto: ${candidate.city || ''}, Telefon: ${candidate.phone || ''}, Forma: ${candidate.employment || ''}</td>`;
+                tableBody.appendChild(row);
+            }
+
+            clients.forEach((client, index) => {
+                const incomes = Object.entries(client.incomes).map(([date, value]) => `${date}: ${value.toFixed(2)} PLN`).join(', ');
+                const costs = Object.entries(client.costs).map(([date, value]) => `${date}: ${value.toFixed(2)} PLN`).join(', ');
+                if (incomes || costs || client.orders) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td>Klient ${index + 1}</td><td>Przychody: ${incomes || 'Brak'}, Koszty: ${costs || 'Brak'}, Zlecenia: ${client.orders || 0}</td>`;
+                    tableBody.appendChild(row);
+                }
+            });
+
+            employees.forEach((employee, index) => {
+                if (employee.name || employee.hireDate || employee.role || employee.salary || employee.employment) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td>Pracownik ${index + 1}</td><td>Imię: ${employee.name || ''}, Data zatrudnienia: ${employee.hireDate || ''}, Rola: ${employee.role || ''}, Kwota: ${employee.salary ? employee.salary.toFixed(2) : '0'} PLN, Forma: ${employee.employment || ''}</td>`;
+                    tableBody.appendChild(row);
+                }
+            });
+
+            vehicles.forEach((vehicle, index) => {
+                if (vehicle.description || vehicle.startDate || vehicle.quantity) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td>Pojazd ${index + 1}</td><td>Opis: ${vehicle.description || ''}, Od kiedy: ${vehicle.startDate || ''}, Ilość: ${vehicle.quantity || 0}</td>`;
+                    tableBody.appendChild(row);
+                }
+            });
+
+            if (additionalInfo.branchWorkType || additionalInfo.officeRentCost || additionalInfo.exchangeTimo || additionalInfo.exchangeTrans || additionalInfo.exchangeOther || additionalInfo.hasCarriers || additionalInfo.carriersComment || additionalInfo.candidateComments) {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>Uzupełniające informacje</td><td>Forma pracy: ${additionalInfo.branchWorkType || ''}, Koszty najmu: ${additionalInfo.officeRentCost ? additionalInfo.officeRentCost.toFixed(2) : '0'} PLN, Giełdy: Timo: ${additionalInfo.exchangeTimo ? 'Tak' : 'Nie'}, Trans: ${additionalInfo.exchangeTrans ? 'Tak' : 'Nie'}, Inne: ${additionalInfo.exchangeOther || ''}, Baza przewoźników: ${additionalInfo.hasCarriers ? 'Tak' : 'Nie'}, Komentarz: ${additionalInfo.carriersComment || ''}, Uwagi: ${additionalInfo.candidateComments || ''}</td>`;
+                tableBody.appendChild(row);
+            }
+
+            additionalInfo.clientsInfo.forEach((info, index) => {
+                if (info.clientType || info.transportType || info.tenderType || info.tenderDate || info.directions || info.loadType || info.hasContracts) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td>Info o kliencie ${index + 1}</td><td>Typ: ${info.clientType || ''}, Transport: ${info.transportType || ''}, Przetarg/Giełda: ${info.tenderType || ''}, Data wdrożenia: ${info.tenderDate || ''}, Kierunki: ${info.directions || ''}, Ładunki: ${info.loadType || ''}, Umowy: ${info.hasContracts ? 'Tak' : 'Nie'}</td>`;
+                    tableBody.appendChild(row);
+                }
+            });
+        }
+
+        function downloadData() {
+            saveData();
+            const budgetData = {
+                candidate,
+                clients,
+                employees,
+                vehicles,
+                additionalInfo,
+                timestamp: new Date().toISOString()
+            };
+            const dataStr = JSON.stringify(budgetData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'budget_data.json';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function sendData() {
+            saveData();
+            if (!candidate.name || !candidate.email) {
+                alert('Proszę wypełnić imię i e-mail kandydata przed wysłaniem.');
+                return;
+            }
+            const budgetText = `
+Dane kandydata:
+- Imię: ${candidate.name || 'Brak'}
+- E-mail: ${candidate.email || 'Brak'}
+- Miasto: ${candidate.city || 'Brak'}
+- Telefon: ${candidate.phone || 'Brak'}
+- Forma zatrudnienia: ${candidate.employment || 'Brak'}
+
+Klienci:
+${clients.map((client, index) => `
+Klient ${index + 1}:
+- Przychody: ${Object.entries(client.incomes).map(([date, value]) => `${date}: ${value.toFixed(2)} PLN`).join(', ') || 'Brak'}
+- Koszty: ${Object.entries(client.costs).map(([date, value]) => `${date}: ${value.toFixed(2)} PLN`).join(', ') || 'Brak'}
+- Liczba zleceń: ${client.orders || 0}
+`).join('\n')}
+
+Zatrudnienie:
+${employees.map((employee, index) => `
+Pracownik ${index + 1}:
+- Imię: ${employee.name || 'Brak'}
+- Data zatrudnienia: ${employee.hireDate || 'Brak'}
+- Rola: ${employee.role || 'Brak'}
+- Kwota: ${employee.salary ? employee.salary.toFixed(2) : '0'} PLN
+- Forma zatrudnienia: ${employee.employment || 'Brak'}
+`).join('\n')}
+
+Pojazdy służbowe:
+${vehicles.map((vehicle, index) => `
+Pojazd ${index + 1}:
+- Opis: ${vehicle.description || 'Brak'}
+- Od kiedy: ${vehicle.startDate || 'Brak'}
+- Ilość: ${vehicle.quantity || 0}
+`).join('\n')}
+
+Uzupełniające informacje:
+- Forma pracy oddziału: ${additionalInfo.branchWorkType || 'Brak'}
+- Koszty najmu biura: ${additionalInfo.officeRentCost ? additionalInfo.officeRentCost.toFixed(2) : '0'} PLN
+- Giełdy: Timo: ${additionalInfo.exchangeTimo ? 'Tak' : 'Nie'}, Trans: ${additionalInfo.exchangeTrans ? 'Tak' : 'Nie'}, Inne: ${additionalInfo.exchangeOther || 'Brak'}
+- Baza przewoźników: ${additionalInfo.hasCarriers ? 'Tak' : 'Nie'}
+- Komentarz do przewoźników: ${additionalInfo.carriersComment || 'Brak'}
+- Informacje o klientach:
+${additionalInfo.clientsInfo.map((info, index) => `
+Klient ${index + 1}:
+- Typ: ${info.clientType || 'Brak'}
+- Transport: ${info.transportType || 'Brak'}
+- Przetarg/Giełda: ${info.tenderType || 'Brak'}
+- Data wdrożenia: ${info.tenderDate || 'Brak'}
+- Kierunki: ${info.directions || 'Brak'}
+- Ładunki: ${info.loadType || 'Brak'}
+- Umowy: ${info.hasContracts ? 'Tak' : 'Nie'}
+`).join('\n')}
+- Uwagi kandydata: ${additionalInfo.candidateComments || 'Brak'}
+            `;
+            emailjs.send('service_a1360jq', 'template_ujx0hdd', {
+                from_name: candidate.name || 'Użytkownik formularza',
+                budget_data: budgetText
+            }).then(
+                () => alert('Dane zostały wysłane!'),
+                (error) => alert('Błąd podczas wysyłania: ' + error.text)
+            );
+        }
+
+        function clearData() {
+            if (confirm('Czy na pewno chcesz wyczyścić wszystkie dane?')) {
+                candidate = {};
+                clients = [{ incomes: {}, costs: {}, orders: 0 }];
+                employees = [{}];
+                vehicles = [{}];
+                additionalInfo = { clientsInfo: [{}] };
+                localStorage.removeItem('budgetData');
+                document.querySelectorAll('input, select, textarea').forEach(input => {
+                    if (input.type === 'checkbox') input.checked = false;
+                    else input.value = '';
+                });
+                updateClientsSection();
+                updateEmployeesSection();
+                updateVehiclesSection();
+                updateClientInfoSection();
+                updateTable();
+            }
+        }
+
+        // Automatyczne zapisywanie po zmianie danych
+        document.querySelectorAll('input, select, textarea').forEach(element => {
+            element.addEventListener('change', saveData);
+        });
+    </script>
+</body>
+</html>
