@@ -415,13 +415,13 @@
                 const costs = {};
                 const orders = {};
                 document.querySelectorAll(`.client input[data-client="${index + 1}"][data-type="income"]`).forEach(input => {
-                    if (input.value) incomes[input.dataset.month] = parseFloat(input.value);
+                    if (input.value) incomes[input.dataset.month] = parseFloat(input.value) || 0;
                 });
                 document.querySelectorAll(`.client input[data-client="${index + 1}"][data-type="cost"]`).forEach(input => {
-                    if (input.value) costs[input.dataset.month] = parseFloat(input.value);
+                    if (input.value) costs[input.dataset.month] = parseFloat(input.value) || 0;
                 });
                 document.querySelectorAll(`.client input[data-client="${index + 1}"][data-type="order"]`).forEach(input => {
-                    if (input.value) orders[input.dataset.month] = parseInt(input.value);
+                    if (input.value) orders[input.dataset.month] = parseInt(input.value) || 0;
                 });
                 return { incomes, costs, orders };
             });
@@ -523,85 +523,101 @@
         }
 
         function generateExcel() {
-            const wb = XLSX.utils.book_new();
-            const startDate = candidate.startDate || new Date().toISOString().split('T')[0];
-            const monthLabels = getMonthLabels(startDate);
+            try {
+                console.log('Generating Excel...');
+                const wb = XLSX.utils.book_new();
+                const startDate = candidate.startDate || new Date().toISOString().split('T')[0];
+                const monthLabels = getMonthLabels(startDate);
 
-            // Arkusz "Informacje ogólne"
-            const ws_info = XLSX.utils.json_to_sheet([{
-                "Imię": candidate.name || "",
-                "E-mail": candidate.email || "",
-                "Miasto": candidate.city || "",
-                "Telefon": candidate.phone || "",
-                "Data startu oddziału": candidate.startDate || "",
-                "Forma zatrudnienia": candidate.employment || ""
-            }], { origin: "B2" });
-            XLSX.utils.book_append_sheet(wb, ws_info, "Informacje ogólne");
+                // Arkusz "Informacje ogólne"
+                const ws_info_data = [{
+                    "Imię": candidate.name || "",
+                    "E-mail": candidate.email || "",
+                    "Miasto": candidate.city || "",
+                    "Telefon": candidate.phone || "",
+                    "Data startu oddziału": candidate.startDate || "",
+                    "Forma zatrudnienia": candidate.employment || ""
+                }];
+                const ws_info = XLSX.utils.json_to_sheet(ws_info_data, { origin: "B2" });
+                XLSX.utils.book_append_sheet(wb, ws_info, "Informacje ogólne");
 
-            // Arkusz "Klienci"
-            const ws_clients_data = [];
-            clients.forEach((client, idx) => {
-                const incomes = client.incomes || {};
-                const costs = client.costs || {};
-                const orders = client.orders || {};
-                const row_przychody = { "Opis": `Przychody Klient ${idx + 1}` };
-                const row_koszty = { "Opis": `Koszty Klient ${idx + 1}` };
-                const row_zlecenia = { "Opis": `Zlecenia Klient ${idx + 1}` };
-                monthLabels.forEach((month, i) => {
-                    row_przychody[MONTH_COLUMNS[i]] = incomes[month] || 0;
-                    row_koszty[MONTH_COLUMNS[i]] = costs[month] || 0;
-                    row_zlecenia[MONTH_COLUMNS[i]] = orders[month] || 0;
+                // Arkusz "Klienci"
+                const ws_clients_data = [];
+                clients.forEach((client, idx) => {
+                    const incomes = client.incomes || {};
+                    const costs = client.costs || {};
+                    const orders = client.orders || {};
+                    const baseRow = 6 + 5 * idx;
+                    const row_przychody = { "Opis": `Przychody Klient ${idx + 1}` };
+                    const row_koszty = { "Opis": `Koszty Klient ${idx + 1}` };
+                    const row_zlecenia = { "Opis": `Zlecenia Klient ${idx + 1}` };
+                    monthLabels.forEach((month, i) => {
+                        row_przychody[MONTH_COLUMNS[i]] = incomes[month] || 0;
+                        row_koszty[MONTH_COLUMNS[i]] = costs[month] || 0;
+                        row_zlecenia[MONTH_COLUMNS[i]] = orders[month] || 0;
+                    });
+                    ws_clients_data.push(
+                        { row: baseRow, data: row_przychody },
+                        { row: baseRow + 1, data: row_koszty },
+                        { row: baseRow + 4, data: row_zlecenia }
+                    );
                 });
-                const baseRow = 6 + 5 * idx;
-                XLSX.utils.sheet_add_json(ws_clients_data, [row_przychody], { origin: `B${baseRow}` });
-                XLSX.utils.sheet_add_json(ws_clients_data, [row_koszty], { origin: `B${baseRow + 1}` });
-                XLSX.utils.sheet_add_json(ws_clients_data, [row_zlecenia], { origin: `B${baseRow + 4}` });
-            });
-            const ws_clients = XLSX.utils.json_to_sheet(ws_clients_data, { origin: "B5" });
-            XLSX.utils.book_append_sheet(wb, ws_clients, "Klienci");
+                const ws_clients = XLSX.utils.json_to_sheet([]);
+                ws_clients_data.forEach(({ row, data }) => {
+                    XLSX.utils.sheet_add_json(ws_clients, [data], { origin: `B${row}`, skipHeader: true });
+                });
+                XLSX.utils.book_append_sheet(wb, ws_clients, "Klienci");
 
-            // Arkusz "Zatrudnienie"
-            const ws_employees = XLSX.utils.json_to_sheet(employees.map((emp, idx) => ({
-                "Imię": emp.name || "",
-                "Data zatrudnienia": emp.hireDate || "",
-                "Rola": emp.role || "",
-                "Kwota": emp.salary || 0,
-                "Forma zatrudnienia": emp.employment || ""
-            })), { origin: "B20" });
-            XLSX.utils.book_append_sheet(wb, ws_employees, "Zatrudnienie");
+                // Arkusz "Zatrudnienie"
+                const ws_employees_data = employees.map((emp, idx) => ({
+                    "Imię": emp.name || "",
+                    "Data zatrudnienia": emp.hireDate || "",
+                    "Rola": emp.role || "",
+                    "Kwota": emp.salary || 0,
+                    "Forma zatrudnienia": emp.employment || ""
+                }));
+                const ws_employees = XLSX.utils.json_to_sheet(ws_employees_data, { origin: "B20" });
+                XLSX.utils.book_append_sheet(wb, ws_employees, "Zatrudnienie");
 
-            // Arkusz "Pojazdy"
-            const ws_vehicles = XLSX.utils.json_to_sheet(vehicles.map((veh, idx) => ({
-                "Opis": veh.description || "",
-                "Od kiedy": veh.startDate || "",
-                "Ilość": veh.quantity || 0
-            })), { origin: "B30" });
-            XLSX.utils.book_append_sheet(wb, ws_vehicles, "Pojazdy");
+                // Arkusz "Pojazdy"
+                const ws_vehicles_data = vehicles.map((veh, idx) => ({
+                    "Opis": veh.description || "",
+                    "Od kiedy": veh.startDate || "",
+                    "Ilość": veh.quantity || 0
+                }));
+                const ws_vehicles = XLSX.utils.json_to_sheet(ws_vehicles_data, { origin: "B30" });
+                XLSX.utils.book_append_sheet(wb, ws_vehicles, "Pojazdy");
 
-            // Arkusz "Dodatkowe"
-            const ws_additional = XLSX.utils.json_to_sheet([{
-                "Forma pracy oddziału": additionalInfo.branchWorkType || "",
-                "Koszty najmu": additionalInfo.officeRentCost || 0,
-                "Giełda Timo": additionalInfo.exchangeTimo ? "Tak" : "Nie",
-                "Giełda Trans": additionalInfo.exchangeTrans ? "Tak" : "Nie",
-                "Inne giełdy": additionalInfo.exchangeOther || "",
-                "Baza przewoźników": additionalInfo.hasCarriers ? "Tak" : "Nie",
-                "Komentarz przewoźników": additionalInfo.carriersComment || "",
-                "Uwagi kandydata": additionalInfo.candidateComments || ""
-            }], { origin: "B40" });
-            const ws_clients_info = XLSX.utils.json_to_sheet(additionalInfo.clientsInfo.map((info, idx) => ({
-                "Typ klienta": info.clientType || "",
-                "Rodzaj transportu": info.transportType || "",
-                "Przetarg/Giełda": info.tenderType || "",
-                "Data wdrożenia": info.tenderDate || "",
-                "Kierunki": info.directions || "",
-                "Rodzaj ładunków": info.loadType || "",
-                "Umowy": info.hasContracts ? "Tak" : "Nie"
-            })), { origin: "B50" });
-            XLSX.utils.sheet_add_json(ws_additional, ws_clients_info.data, { origin: "B50" });
-            XLSX.utils.book_append_sheet(wb, ws_additional, "Dodatkowe");
+                // Arkusz "Dodatkowe"
+                const ws_additional_data = [{
+                    "Forma pracy oddziału": additionalInfo.branchWorkType || "",
+                    "Koszty najmu": additionalInfo.officeRentCost || 0,
+                    "Giełda Timo": additionalInfo.exchangeTimo ? "Tak" : "Nie",
+                    "Giełda Trans": additionalInfo.exchangeTrans ? "Tak" : "Nie",
+                    "Inne giełdy": additionalInfo.exchangeOther || "",
+                    "Baza przewoźników": additionalInfo.hasCarriers ? "Tak" : "Nie",
+                    "Komentarz przewoźników": additionalInfo.carriersComment || "",
+                    "Uwagi kandydata": additionalInfo.candidateComments || ""
+                }];
+                const ws_additional = XLSX.utils.json_to_sheet(ws_additional_data, { origin: "B40" });
+                const ws_clients_info_data = additionalInfo.clientsInfo.map((info, idx) => ({
+                    "Typ klienta": info.clientType || "",
+                    "Rodzaj transportu": info.transportType || "",
+                    "Przetarg/Giełda": info.tenderType || "",
+                    "Data wdrożenia": info.tenderDate || "",
+                    "Kierunki": info.directions || "",
+                    "Rodzaj ładunków": info.loadType || "",
+                    "Umowy": info.hasContracts ? "Tak" : "Nie"
+                }));
+                XLSX.utils.sheet_add_json(ws_additional, ws_clients_info_data, { origin: "B50", skipHeader: true });
+                XLSX.utils.book_append_sheet(wb, ws_additional, "Dodatkowe");
 
-            return wb;
+                console.log('Excel generated successfully');
+                return wb;
+            } catch (error) {
+                console.error('Error in generateExcel:', error);
+                throw error;
+            }
         }
 
         function downloadExcel() {
@@ -611,6 +627,7 @@
                 XLSX.writeFile(wb, `GT_Budzet_${candidate.name || 'Anonim'}_${new Date().toISOString().split('T')[0]}.xlsx`);
                 alert('Plik Excel został wygenerowany i pobrany!');
             } catch (error) {
+                console.error('Error in downloadExcel:', error);
                 alert('Błąd podczas generowania pliku Excel: ' + error.message);
             }
         }
@@ -681,37 +698,45 @@
                 Uwagi kandydata: ${additionalInfo.candidateComments || ''}
             `;
 
-            emailjs.send('service_a1360jq', 'template_5q57m3u', {
+            emailjs.send('service_a1360jq', 'template_ujx0hdd', {
                 from_name: candidate.name || 'Użytkownik formularza',
                 email: candidate.email,
                 message: emailContent.trim(),
                 timestamp: new Date().toISOString()
             }).then(
                 () => alert('Dane zostały wysłane na e-mail!'),
-                (error) => alert('Błąd podczas wysyłania: ' + error.text)
+                (error) => {
+                    console.error('Error in sendData:', error);
+                    alert('Błąd podczas wysyłania: ' + error.text);
+                }
             );
         }
 
         function downloadJson() {
-            saveData();
-            const budgetData = {
-                candidate,
-                clients,
-                employees,
-                vehicles,
-                additionalInfo,
-                timestamp: new Date().toISOString()
-            };
-            const dataStr = JSON.stringify(budgetData, null, 2);
-            const blob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'budget_data.json';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+            try {
+                saveData();
+                const budgetData = {
+                    candidate,
+                    clients,
+                    employees,
+                    vehicles,
+                    additionalInfo,
+                    timestamp: new Date().toISOString()
+                };
+                const dataStr = JSON.stringify(budgetData, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'budget_data.json';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error('Error in downloadJson:', error);
+                alert('Błąd podczas pobierania JSON: ' + error.message);
+            }
         }
 
         function clearData() {
