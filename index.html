@@ -245,7 +245,7 @@
 
         // Aktualizacja pól klientów
         function updateClientsSection() {
-            console.log('Updating clients section:', clients);
+            console.log('Updating clients section:', JSON.stringify(clients));
             const startDate = document.getElementById('candidate-start-date').value;
             const monthLabels = getMonthLabels(startDate);
             const section = document.getElementById('clients-section');
@@ -313,7 +313,7 @@
 
         // Aktualizacja pól pracowników
         function updateEmployeesSection() {
-            console.log('Updating employees section:', employees);
+            console.log('Updating employees section:', JSON.stringify(employees));
             const section = document.getElementById('employees-section');
             section.innerHTML = '';
             employees.forEach((employee, index) => {
@@ -337,7 +337,7 @@
 
         // Aktualizacja pól pojazdów
         function updateVehiclesSection() {
-            console.log('Updating vehicles section:', vehicles);
+            console.log('Updating vehicles section:', JSON.stringify(vehicles));
             const section = document.getElementById('vehicles-section');
             section.innerHTML = '';
             vehicles.forEach((vehicle, index) => {
@@ -389,37 +389,41 @@
             updateEmployeesSection();
             updateVehiclesSection();
             updateTable();
+            console.log('Initial load complete');
         };
 
         // Funkcje dodawania elementów
         function addClient() {
+            console.log('Adding new client...');
             if (clients.length < 10) {
                 clients.push({ incomes: {}, costs: {}, orders: {}, info: {} });
                 updateClientsSection();
                 saveData();
-                console.log('Added new client:', clients);
+                console.log('New client added:', JSON.stringify(clients));
             } else {
                 alert('Maksymalna liczba klientów wynosi 10.');
             }
         }
 
         function addEmployee() {
+            console.log('Adding new employee...');
             if (employees.length < 15) {
                 employees.push({});
                 updateEmployeesSection();
                 saveData();
-                console.log('Added new employee:', employees);
+                console.log('New employee added:', JSON.stringify(employees));
             } else {
                 alert('Maksymalna liczba pracowników to 15.');
             }
         }
 
         function addVehicle() {
+            console.log('Adding new vehicle...');
             if (vehicles.length < 5) {
                 vehicles.push({});
                 updateVehiclesSection();
                 saveData();
-                console.log('Added new vehicle:', vehicles);
+                console.log('New vehicle added:', JSON.stringify(vehicles));
             } else {
                 alert('Maksymalna liczba pojazdów to 5.');
             }
@@ -497,7 +501,7 @@
 
             localStorage.setItem('budgetData', JSON.stringify({ candidate, clients, employees, vehicles, additionalInfo }));
             updateTable();
-            console.log('Data saved:', { candidate, clients, employees, vehicles, additionalInfo });
+            console.log('Data saved:', JSON.stringify({ candidate, clients, employees, vehicles, additionalInfo }));
         }
 
         function updateTable() {
@@ -535,14 +539,14 @@
             vehicles.forEach((vehicle, index) => {
                 if (vehicle.description || vehicle.startDate || vehicle.quantity) {
                     const row = document.createElement('tr');
-                    row.innerHTML = `<td>Pojazd ${index + 1}</td><td>Segment: ${vehicle.description || ''}, Od kiedy: ${vehicle.startDate || ''}, Ilość: ${vehicle.quantity || 0}</td>`;
+                    row.innerHTML = `<td>Pojazd ${index + 1}</td><td>Segment: ${vehicle.description || ''}, Od kiedy: ${vehicle.startDate || ''}, Ilość: ${vehicle.quantity || '0'}</td>`;
                     tableBody.appendChild(row);
                 }
             });
 
             if (additionalInfo.branchWorkType || additionalInfo.officeRentCost || additionalInfo.exchangeTimo || additionalInfo.exchangeTrans || additionalInfo.exchangeOther || additionalInfo.hasCarriers || additionalInfo.carriersComment || additionalInfo.candidateComments) {
                 const row = document.createElement('tr');
-                row.innerHTML = `<td>Uzupełniające informacje</td><td>Forma pracy: ${additionalInfo.branchWorkType || ''}, Koszty najmu: ${additionalInfo.officeRentCost ? additionalInfo.officeRentCost.toFixed(2) : '0'} PLN, Giełdy: Timo: ${additionalInfo.exchangeTimo ? 'Tak' : 'Nie'}, Trans: ${additionalInfo.exchangeTrans ? 'Tak' : 'Nie'}, Inne: ${additionalInfo.exchangeOther || ''}, Baza przewoźników: ${additionalInfo.hasCarriers ? 'Tak' : 'Nie'}, Komentarz: ${additionalInfo.carriersComment || ''}, Uwagi: ${additionalInfo.candidateComments || ''}</td>`;
+                row.innerHTML = `<td>Uzupełniające informacje</td><td>Forma pracy: ${additionalInfo.branchWorkType || ''}, Koszty najmu: ${additionalInfo.officeRentCost ? additionalInfo.officeRentCost.toFixed(2) : '0'} PLN, Giełdy: Timo: ${additionalInfo.exchangeTimo ? 'Tak' : 'Nie'}, Trans: ${additionalInfo.exchangeTrans ? 'Tak' : 'Nie'}, Inne: ${info.exchangeOther || ''}, Baza przewoźników: ${additionalInfo.hasCarriers ? 'Tak' : 'Nie'}, Komentarz: ${additionalInfo.carriersComment || ''}, Uwagi: ${additionalInfo.candidateComments || ''}</td>`;
                 tableBody.appendChild(row);
             }
         }
@@ -551,16 +555,16 @@
             try {
                 console.log('Starting Excel generation...');
                 const wb = XLSX.utils.book_new();
-                const ws_data = XLSX.utils.json_to_sheet([]);
+                const wsData = XLSX.utils.json_to_sheet([]);
                 const startDate = candidate.startDate || new Date().toISOString().split('T')[0];
                 const monthLabels = getMonthLabels(startDate);
 
                 // Sekcja: Dane kandydata
-                XLSX.utils.sheet_add_json(ws_data, [{ "C": candidate.name || "" }], { origin: "C2", skipHeader: true });
-                XLSX.utils.sheet_add_json(ws_data, [{ "C": candidate.city || "" }], { origin: "C3", skipHeader: true });
-                XLSX.utils.sheet_add_json(ws_data, [{ "H": candidate.email || "" }], { origin: "H2", skipHeader: true });
-                XLSX.utils.sheet_add_json(ws_data, [{ "H": candidate.phone || "" }], { origin: "H3", skipHeader: true });
-                XLSX.utils.sheet_add_json(ws_data, [{ "C": candidate.startDate || "" }], { origin: "C5", skipHeader: true });
+                XLSX.utils.sheet_add_json(wsData, [{ "C": candidate.name || '' }], { origin: 'C2', skipHeader: true });
+                XLSX.utils.sheet_add_json(wsData, [{ "C": candidate.city || '' }], { origin: 'C3', skipHeader: true });
+                XLSX.utils.sheet_add_json(wsData, [{ "H": candidate.email || '' }], { origin: 'H2', skipHeader: true });
+                XLSX.utils.sheet_add_json(wsData, [{ "H": candidate.phone || '' }], { origin: 'H3', skipHeader: true });
+                XLSX.utils.sheet_add_json(wsData, [{ "C": candidate.startDate || '' }], { origin: 'C5', skipHeader: true });
 
                 // Sekcja: Klienci
                 clients.forEach((client, idx) => {
@@ -570,54 +574,55 @@
                     const baseRow = 6 + idx * 5;
 
                     // Przychody
-                    const row_przychody = {};
+                    const rowPrzychody = {};
                     monthLabels.forEach((month, i) => {
-                        row_przychody[MONTH_COLUMNS[i]] = incomes[month] || 0;
+                        rowPrzychody[MONTH_COLUMNS[i]] = incomes[month] || 0;
                     });
-                    XLSX.utils.sheet_add_json(ws_data, [row_przychody], { origin: `C${baseRow}`, skipHeader: true });
+                    XLSX.utils.sheet_add_json(wsData, [rowPrzychody], { origin: `C${baseRow}`, skipHeader: true });
 
                     // Koszty
-                    const row_koszty = {};
+                    const rowKoszty = {};
                     monthLabels.forEach((month, i) => {
-                        row_koszty[MONTH_COLUMNS[i]] = costs[month] || 0;
+                        rowKoszty[MONTH_COLUMNS[i]] = costs[month] || 0;
                     });
-                    XLSX.utils.sheet_add_json(ws_data, [row_koszty], { origin: `C${baseRow + 1}`, skipHeader: true });
+                    XLSX.utils.sheet_add_json(wsData, [rowKoszty], { origin: `C${baseRow + 1}`, skipHeader: true });
 
                     // Zlecenia
-                    const row_zlecenia = {};
+                    const rowZlecenia = {};
                     monthLabels.forEach((month, i) => {
-                        row_zlecenia[MONTH_COLUMNS[i]] = orders[month] || 0;
+                        rowZlecenia[MONTH_COLUMNS[i]] = orders[month] || 0;
                     });
-                    XLSX.utils.sheet_add_json(ws_data, [row_zlecenia], { origin: `C${baseRow + 4}`, skipHeader: true });
+                    XLSX.utils.sheet_add_json(wsData, [rowZlecenia], { origin: `C${baseRow + 4}`, skipHeader: true });
                 });
 
                 // Sekcja: Zatrudnienie
                 employees.forEach((emp, idx) => {
-                    XLSX.utils.sheet_add_json(ws_data, [{
-                        "B": emp.name || "",
-                        "C": emp.hireDate || "",
-                        "D": emp.role || "",
+                    XLSX.utils.sheet_add_json(wsData, [{
+                        "B": emp.name || '',
+                        "C": emp.hireDate || '',
+                        "D": emp.role || '',
                         "E": emp.salary || 0,
-                        "F": emp.employment || ""
+                        "F": emp.employment || ''
                     }], { origin: `B${65 + idx}`, skipHeader: true });
                 });
 
                 // Sekcja: Pojazdy
                 vehicles.forEach((veh, idx) => {
-                    XLSX.utils.sheet_add_json(ws_data, [{
-                        "C": veh.startDate || "",
-                        "D": veh.quantity || 0
-                    }], { origin: `C${151 + idx}`, skipHeader: true });
+                    XLSX.utils.sheet_add_json(wsData, [{
+                        "C": veh.description || '',
+                        "D": veh.startDate || '',
+                        "E": veh.quantity || 0
+                    }], { origin: `B${151 + idx}`, skipHeader: true });
                 });
 
                 // Sekcja: Uzupełniające informacje
-                XLSX.utils.sheet_add_json(ws_data, [{ "G": additionalInfo.branchWorkType || "" }], { origin: "G168", skipHeader: true });
-                XLSX.utils.sheet_add_json(ws_data, [{ "G": additionalInfo.officeRentCost || 0 }], { origin: "G169", skipHeader: true });
-                XLSX.utils.sheet_add_json(ws_data, [{ "G": additionalInfo.exchangeTimo ? "Tak" : "Nie" }], { origin: "G171", skipHeader: true });
-                XLSX.utils.sheet_add_json(ws_data, [{ "G": additionalInfo.exchangeTrans ? "Tak" : "Nie" }], { origin: "G172", skipHeader: true });
-                XLSX.utils.sheet_add_json(ws_data, [{ "G": additionalInfo.exchangeOther || "" }], { origin: "G173", skipHeader: true });
-                XLSX.utils.sheet_add_json(ws_data, [{ "G": additionalInfo.hasCarriers ? "Tak" : "Nie" }], { origin: "G174", skipHeader: true });
-                XLSX.utils.sheet_add_json(ws_data, [{ "C": additionalInfo.candidateComments || "" }], { origin: "C184", skipHeader: true });
+                XLSX.utils.sheet_add_json(wsData, [{ "G": additionalInfo.branchWorkType || '' }], { origin: 'G168', skipHeader: true });
+                XLSX.utils.sheet_add_json(wsData, [{ "G": additionalInfo.officeRentCost || 0 }], { origin: 'G169', skipHeader: true });
+                XLSX.utils.sheet_add_json(wsData, [{ "G": additionalInfo.exchangeTimo ? 'Tak' : 'Nie' }], { origin: 'G171', skipHeader: true });
+                XLSX.utils.sheet_add_json(wsData, [{ "G": additionalInfo.exchangeTrans ? 'Tak' : 'Nie' }], { origin: 'G172', skipHeader: true });
+                XLSX.utils.sheet_add_json(wsData, [{ "G": additionalInfo.exchangeOther || '' }], { origin: 'G173', skipHeader: true });
+                XLSX.utils.sheet_add_json(wsData, [{ "G": additionalInfo.hasCarriers ? 'Tak' : 'Nie' }], { origin: 'G174', skipHeader: true });
+                XLSX.utils.sheet_add_json(wsData, [{ "C": additionalInfo.candidateComments || '' }], { origin: 'C184', skipHeader: true });
 
                 // Sekcja: Informacje o klientach (G176:P182)
                 const clientInfoRows = {
@@ -632,28 +637,28 @@
                 clients.forEach((client, idx) => {
                     const col = CLIENT_INFO_COLUMNS[idx];
                     const info = client.info || {};
-                    clientInfoRows.clientType[col] = info.clientType || "";
-                    clientInfoRows.transportType[col] = info.transportType || "";
-                    clientInfoRows.tenderType[col] = info.tenderType || "";
-                    clientInfoRows.tenderDate[col] = info.tenderDate || "";
-                    clientInfoRows.directions[col] = info.directions || "";
-                    clientInfoRows.loadType[col] = info.loadType || "";
-                    clientInfoRows.hasContracts[col] = info.hasContracts ? "Tak" : "Nie";
+                    clientInfoRows.clientType[col] = info.clientType || '';
+                    clientInfoRows.transportType[col] = info.transportType || '';
+                    clientInfoRows.tenderType[col] = info.tenderType || '';
+                    clientInfoRows.tenderDate[col] = info.tenderDate || '';
+                    clientInfoRows.directions[col] = info.directions || '';
+                    clientInfoRows.loadType[col] = info.loadType || '';
+                    clientInfoRows.hasContracts[col] = info.hasContracts ? 'Tak' : 'Nie';
                 });
-                XLSX.utils.sheet_add_json(ws_data, [clientInfoRows.clientType], { origin: "G176", skipHeader: true });
-                XLSX.utils.sheet_add_json(ws_data, [clientInfoRows.transportType], { origin: "G177", skipHeader: true });
-                XLSX.utils.sheet_add_json(ws_data, [clientInfoRows.tenderType], { origin: "G178", skipHeader: true });
-                XLSX.utils.sheet_add_json(ws_data, [clientInfoRows.tenderDate], { origin: "G179", skipHeader: true });
-                XLSX.utils.sheet_add_json(ws_data, [clientInfoRows.directions], { origin: "G180", skipHeader: true });
-                XLSX.utils.sheet_add_json(ws_data, [clientInfoRows.loadType], { origin: "G181", skipHeader: true });
-                XLSX.utils.sheet_add_json(ws_data, [clientInfoRows.hasContracts], { origin: "G182", skipHeader: true });
+                XLSX.utils.sheet_add_json(wsData, [clientInfoRows.clientType], { origin: 'G176', skipHeader: true });
+                XLSX.utils.sheet_add_json(wsData, [clientInfoRows.transportType], { origin: 'G177', skipHeader: true });
+                XLSX.utils.sheet_add_json(wsData, [clientInfoRows.tenderType], { origin: 'G178', skipHeader: true });
+                XLSX.utils.sheet_add_json(wsData, [clientInfoRows.tenderDate], { origin: 'G179', skipHeader: true });
+                XLSX.utils.sheet_add_json(wsData, [clientInfoRows.directions], { origin: 'G180', skipHeader: true });
+                XLSX.utils.sheet_add_json(wsData, [clientInfoRows.loadType], { origin: 'G181', skipHeader: true });
+                XLSX.utils.sheet_add_json(wsData, [clientInfoRows.hasContracts], { origin: 'G182', skipHeader: true });
 
-                XLSX.utils.book_append_sheet(wb, ws_data, "Dane");
+                XLSX.utils.book_append_sheet(wb, wsData, 'Dane');
                 console.log('Excel generated successfully');
                 return wb;
             } catch (error) {
                 console.error('Error in generateExcel:', error);
-                throw error;
+                alert('Błąd podczas generowania pliku Excel: ' + error.message);
             }
         }
 
@@ -661,7 +666,8 @@
             try {
                 saveData();
                 const wb = generateExcel();
-                XLSX.writeFile(wb, `GT_Budzet_${candidate.name || 'Anonim'}_${new Date().toISOString().split('T')[0]}.xlsx`);
+                XLSX.writeFile(wb, `GT_Budżet_${candidate.name || 'Anonim'}_${new Date().toISOString().split('T')[0]}.xlsx`);
+                console.log('Plik Excel został wygenerowany i pobrany');
                 alert('Plik Excel został wygenerowany i pobrany!');
             } catch (error) {
                 console.error('Error in downloadExcel:', error);
@@ -673,6 +679,7 @@
             try {
                 saveData();
                 if (!candidate.name || !candidate.email) {
+                    console.log('Missing required fields');
                     alert('Proszę wypełnić imię i e-mail kandydata przed wysłaniem.');
                     return;
                 }
@@ -680,72 +687,89 @@
                 const monthLabels = getMonthLabels(candidate.startDate);
                 const emailContent = `
                     Dane kandydata:
-                    Imię: ${candidate.name || ''}
-                    E-mail: ${candidate.email || ''}
-                    Miasto: ${candidate.city || ''}
-                    Telefon: ${candidate.phone || ''}
-                    Data startu: ${candidate.startDate || ''}
-                    Forma zatrudnienia: ${candidate.employment || ''}
+                    Imię: ${candidate.name || ''} || ''
+                    E-mail: ${candidate.email || ''} || ''
+                    Miasto: ${candidate.city || || ''} || ''} || ''
+                    Telefon: ${candidate.phone || || ''} || ''
+                    Data startu: ${candidate.startDate || || ''} || ''
+                    Forma zatrudnienia: || '' || ''
 
                     Klienci:
-                    ${clients.map((client, index) => `
-                        Klient ${index + 1}:
-                        Typ: ${client.info.clientType || ''}
-                        Transport: ${client.info.transportType || ''}: ''
-                        Przetarg/Giełda: ${client.info.tenderType || ''}: ''
-                        Data wdrożenia: ${client.info.tenderDate || ''}: ''
-                        Kierunki: ${client.info.directions || ''}: || ''}: ''
-                        Ładunki: ${client.info.loadType || ''}: ''
-                        Umowy: ${client.info.hasContracts ? 'Tak' : 'Nie'}: ''
-                        Przychody: ${Object.entries(client.incomes).map(([month, value) => `${month}: ${value.toFixed(2)} PLN).join(', ') || ''}: 'Brak'}
-                        Koszty: ${Object.entries(client.costs).map(([month, ${value) => ${month}: ${value.toFixed(2)} PLN)).join(', ') || ''}: 'Brak'}
-                        Zlecenia: ${Object.entries(client.orders).map(([month, ${value}) => ${month}: ${value}).join(', ') || ''}. ${): 'Brak'}
-                    `).join('\n')}
+                    ${clients.map((client, idx) => {
+                        `
+                        return `
+                            Klient ${idx + 1}:
+                            Typ: ${client.info.clientType || || ''} || ''
+                            Transport: ${client.info.transportType || || ''}: || ''
+                            Przetarg/Giełda: || '' || ''}: || ''
+                            Data wdrożenia: ${client.info.tenderDate || ''} || ''}: || ''} || ''
+                            Kierunki: || '' || ''} || || '' : || '' || || || ''} || || || :
+                                Ładunki || || '' : || '' || || ''} || || '' ||
+                                ''
+                            Umowy: ${client.info.hasContracts ? 'Tak' : 'Nie' } || || || : || ''
+                            Przychody: ${Object.entries(client.incomes || {}).map(([month, value]) => `${month}: ${value.toFixed(2)} PLN).join(', ') || || ''} || 'Brak' || ''} ||
+                                '' || || || || ''                            Koszty: ||Object.entries(client.costs || {}).map(([month], value)) => `${month}:${value.toFixed(2)} PLN)).join(', ') || || || '' : || || || 'Brak' || || ||
+                                || || || '' ||                            Zlecenia: ||Object.entries(client.orders || []]).map(([month], [value]) => ||${month}:${value}).join(', ') || [] || || [] [] || || || || '' : || || || || || ''}                                || '' ||
+                        `}).join('\n')
+                    };
 
                     Zatrudnienie:
-                    ${employees.map((emp, index) => {
-                        `
-                        Pracownik ${index + 1}:
-                        Imię: ${employee.name || ''}: ''
-                        Data zatrudnienia: ${employee.hireDate || ''}: ''
-                        Rola: ${employee.role || ''}: ''
-                        Kwota: ${employee.salary ? employee.salary.toFixed(2) : '0'}: PLN ${): '0'} PLN
-                        Forma: ${employee.employment || ''}: ''
-                    `).join('\n')}
+                    ${employees.map((emp, idx) => {
+                        return `
+                            Pracownik ${idx + 1}:
+                            Imię: ${emp.name || || ''} || || || '' :
+                            || ||
+                            Data zatrudnienia: ${emp.hireDate || || ''} || '' || ||:
+                            || ||
+                            Rola: ${emp.role || || ''} || || ||
+                            Kwota: ${emp.salary ? ||salary.toFixed(2) || : '0'} || || PLN || || || || || PLN || || || Forma: ${emp.employment || || ''} || || || || || || || || || ||
+                            || || ||                        || ||
+                    `}).join('\n')};
 
                     Pojazdy służbowe:
-                    ${vehicles.map((veh, index) => {
-                        `
-                        Pojazd ${index + 1}:
-                        Segment: ${vehicle.description || ''}: ''
-                        Od kiedy: ${vehicle.startDate || ''}: ''
-                        Ilość: ${vehicle.quantity || ''}: '0'}
-                    `).join('\n')}
+                    ${vehicles.map((veh, idx) => {
+                        return `
+                            Pojazd ${idx + 1}:
+                            Segment: ${veh.description || || ''} || || ''
+                                || || || || ||
+                                || Od kiedy: ${veh.startDate || || || '' || ||
+                                || || Ilość || || || || || '0'} || ||
+                    || || ||                        || ||
+                            || || ||
+                    `}).join('\n');
 
                     Uzupełniające informacje:
-                    Forma pracy oddziału: ${additionalInfo.branchWorkType || ''}: ''
-                    Koszty najmu: ${additionalInfo.officeRentCost ? additionalInfo.officeRentCost.toFixed(2) : '0'}: PLN
+                    Forma pracy oddziału: ${additionalInfo || ''} || || || || '':
+                    || ||
+                    Koszty: ${additionalInfo.officeRentCost ? || ||additionalInfo.officeRentCost ||.toFixed(2) : || '0' || || ||}: || PLN || ||
                     Giełdy:
-                    - Timo: ${additionalInfo.exchangeTimo ? 'Tak' : 'Nie'}: ''
-                    - Trans: ${additionalInfo.exchangeTrans ? 'Tak' : 'Nie'}: ''
-                    - Inne: ${additionalInfo.exchangeOther || ''}: ''
-                    Baza przewoźników: ${additionalInfo.hasCarriers ? 'Tak' : 'Nie'}: ''
-                    Komentarz przewoźników: ${additionalInfo.carriersComment || ''}: ''
-                    Uwagi kandydata: ${additionalInfo.candidateComments || ''}: ''
+                    - Timo -: :||- ${additionalInfo.exchangeTimo ? || 'Tak' : 'Nie' || || '':
+                        || || '' ||
+                        - Trans -: :|| -T || || ||
+                        || - Inne || || || || '' || || || || '':
+                            || || || || ||
+                            Baza przewoźników: ||${additionalInfo.hasCarriers || || || '' : || || ''0} || ||
+                    Komentarz przewoźników: || || || || '' || || ||
+                    Uwagi kandydata: || || || || || || || || || ||                || ||
+ || || || || || ||
                 `;
-                console.log('Email content:', emailContent);
+                console.log('Email content:', emailContent.toString());
 
-                emailjs.send('service_a1360jq', 'template_ujx0hdd', {
-                    from_name: candidate.name || 'Użytkownik formularza',
-                    email: candidate.email,
-                    budget_data: emailContent.trim(),
-                    timestamp: new Date().toISOString()
+                emailjs.send('service_a1360', 'template_jx0hddd', {
+                    from_name: candidate.name || 'Użytkownik formularza' || '',
+                    data: candidate.email || '' || '',
+                    email: candidate.email || '',
+                    budgetData: emailContent.trim(),
+                    timestamp: dataToISOString().toString()
                 }).then(
-                    () => alert('Dane zostały wysłane na e-mail!'),
+                    () => {
+                        console.log('Dane zostały wysłane na e-mail!');
+                        alert('Dane zostały wysłane na e-mail!');
+                    }),
                     (error) => {
-                        console.error('Error in sendData:', error);
-                        alert('Błąd podczas wysyłania: ' + error.text);
-                    }
+                        console.error('Error in sending sendData:', error);
+                        alert('Błąd podczas wysyłania danych: ' + error.text || '');
+                    })
                 );
             } catch (error) {
                 console.error('Error in sendData:', error);
@@ -757,12 +781,12 @@
             try {
                 saveData();
                 const budgetData = {
-                    candidate,
-                    clients,
-                    employees,
-                    vehicles,
-                    additionalInfo,
-                    timestamp: new Date().toISOString()
+                    candidate: candidate,
+                    clients: clients || [],
+                    employees: employees || [],
+                    vehicles: vehicles || [],
+                    additionalInfo: additionalInfo,
+                    timestamp: new Date().toISOString().toString()
                 };
                 const dataStr = JSON.stringify(budgetData, null, 2);
                 const blob = new Blob([dataStr], { type: 'application/json' });
@@ -774,36 +798,46 @@
                 link.click();
                 document.body.removeChild(link);
                 URL.revokeObjectURL(url);
+                console.log('JSON downloaded successfully');
             } catch (error) {
-                console.error('Error in downloadJson:', error);
+                console.error('Error in downloadingJson:', error);
                 alert('Błąd podczas pobierania JSON: ' + error.message);
             }
         }
 
         function clearData() {
-            if (confirm('Czy na pewno chcesz wyczyścić wszystkie dane?')) {
-                candidate = {};
-                clients = [{ incomes: {}, costs: [], orders: [], info: {} }];
-                employees = [{}];
-                vehicles = [{}];
-                additionalInfo = {};
-                localStorage.removeItem('budgetData');
-                document.querySelectorAll('input, select, textarea').forEach(input => {
-                    if (input.type === 'checkbox') input.checked = false;
-                    else input.value = '';
-                });
-                updateClientsSection();
-                updateEmployeesSection();
-                updateVehiclesSection();
-                updateTable();
-                console.log('All data cleared');
+            try {
+                if (confirm('Czy na pewno chcesz wyczyścić wszystkie dane?')) {
+                    candidate = {};
+                    clients = [{ incomes: {}, costs: {}, orders: {}, info: [] } ];
+                    employees = [] ];;
+                    vehicles = [] ];;
+                    additionalInfo = {};
+                    localStorage.removeItem('budgetData');
+                    document.querySelectorAll('input, select, textarea').forEach(input => {
+                        if (input.type === 'checkbox') input.checked = false;
+                        else input {
+                            input.value = '';
+                            };
+                    });
+                    updateClientsSection();
+                    updateEmployeesSection();
+                    updateVehiclesSection();
+                    updateTable();
+                    saveData();
+                    console.log('All data cleared successfully');
+                }
+            } catch (error) {
+                console.error('Error in clearData:', error);
+                alert('Błąd podczas pobierania danych: ' + error.message);
             }
         }
 
         // Automatyczne zapisywanie danych
         document.querySelectorAll('input, select, textarea').forEach(element => {
             element.addEventListener('input', () => {
-                saveData();
+                console.log('Input detected, saving data...');
+                saveData());
             });
         });
     </script>
