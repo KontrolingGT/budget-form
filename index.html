@@ -245,6 +245,7 @@
 
         // Aktualizacja pól klientów
         function updateClientsSection() {
+            console.log('Updating clients section:', clients);
             const startDate = document.getElementById('candidate-start-date').value;
             const monthLabels = getMonthLabels(startDate);
             const section = document.getElementById('clients-section');
@@ -310,8 +311,56 @@
             });
         }
 
+        // Aktualizacja pól pracowników
+        function updateEmployeesSection() {
+            console.log('Updating employees section:', employees);
+            const section = document.getElementById('employees-section');
+            section.innerHTML = '';
+            employees.forEach((employee, index) => {
+                const div = document.createElement('div');
+                div.className = 'employee';
+                div.innerHTML = `
+                    <h4>Pracownik ${index + 1}</h4>
+                    <input type="text" data-employee="${index + 1}" data-type="name" placeholder="Imię i nazwisko" value="${employee.name || ''}">
+                    <input type="date" data-employee="${index + 1}" data-type="hire-date" placeholder="Data zatrudnienia" value="${employee.hireDate || ''}">
+                    <input type="text" data-employee="${index + 1}" data-type="role" placeholder="Rola" value="${employee.role || ''}">
+                    <input type="number" data-employee="${index + 1}" data-type="salary" placeholder="Kwota [PLN]" value="${employee.salary || ''}">
+                    <select data-employee="${index + 1}" data-type="employment">
+                        <option value="">Wybierz formę zatrudnienia</option>
+                        <option value="B2B" ${employee.employment === 'B2B' ? 'selected' : ''}>B2B</option>
+                        <option value="Umowa o pracę" ${employee.employment === 'Umowa o pracę' ? 'selected' : ''}>Umowa o pracę</option>
+                    </select>
+                `;
+                section.appendChild(div);
+            });
+        }
+
+        // Aktualizacja pól pojazdów
+        function updateVehiclesSection() {
+            console.log('Updating vehicles section:', vehicles);
+            const section = document.getElementById('vehicles-section');
+            section.innerHTML = '';
+            vehicles.forEach((vehicle, index) => {
+                const div = document.createElement('div');
+                div.className = 'vehicle';
+                div.innerHTML = `
+                    <h4>Pojazd ${index + 1}</h4>
+                    <select data-vehicle="${index + 1}" data-type="description">
+                        <option value="">Wybierz segment</option>
+                        <option value="Segment A" ${vehicle.description === 'Segment A' ? 'selected' : ''}>Segment A</option>
+                        <option value="Segment B" ${vehicle.description === 'Segment B' ? 'selected' : ''}>Segment B</option>
+                        <option value="Segment C" ${vehicle.description === 'Segment C' ? 'selected' : ''}>Segment C</option>
+                    </select>
+                    <input type="date" data-vehicle="${index + 1}" data-type="start-date" placeholder="Od kiedy" value="${vehicle.startDate || ''}">
+                    <input type="number" data-vehicle="${index + 1}" data-type="quantity" placeholder="Ilość" value="${vehicle.quantity || ''}">
+                `;
+                section.appendChild(div);
+            });
+        }
+
         // Wczytywanie danych z localStorage
         window.onload = function() {
+            console.log('Loading data from localStorage...');
             const savedData = localStorage.getItem('budgetData');
             if (savedData) {
                 const data = JSON.parse(savedData);
@@ -335,21 +384,20 @@
                 document.getElementById('carriers-comment').value = additionalInfo.carriersComment || '';
                 document.getElementById('candidate-comments').value = additionalInfo.candidateComments || '';
                 toggleCarriersComment();
-                updateClientsSection();
-                updateEmployeesSection();
-                updateVehiclesSection();
-                updateTable();
-            } else {
-                updateClientsSection();
             }
+            updateClientsSection();
+            updateEmployeesSection();
+            updateVehiclesSection();
+            updateTable();
         };
 
         // Funkcje dodawania elementów
         function addClient() {
             if (clients.length < 10) {
                 clients.push({ incomes: {}, costs: {}, orders: {}, info: {} });
-                saveData(); // Zapisz dane przed aktualizacją
                 updateClientsSection();
+                saveData();
+                console.log('Added new client:', clients);
             } else {
                 alert('Maksymalna liczba klientów wynosi 10.');
             }
@@ -358,8 +406,9 @@
         function addEmployee() {
             if (employees.length < 15) {
                 employees.push({});
-                saveData(); // Zapisz dane przed aktualizacją
                 updateEmployeesSection();
+                saveData();
+                console.log('Added new employee:', employees);
             } else {
                 alert('Maksymalna liczba pracowników to 15.');
             }
@@ -368,54 +417,12 @@
         function addVehicle() {
             if (vehicles.length < 5) {
                 vehicles.push({});
-                saveData(); // Zapisz dane przed aktualizacją
                 updateVehiclesSection();
+                saveData();
+                console.log('Added new vehicle:', vehicles);
             } else {
                 alert('Maksymalna liczba pojazdów to 5.');
             }
-        }
-
-        function updateEmployeesSection() {
-            const section = document.getElementById('employees-section');
-            section.innerHTML = '';
-            employees.forEach((employee, index) => {
-                const div = document.createElement('div');
-                div.className = 'employee';
-                div.innerHTML = `
-                    <h4>Pracownik ${index + 1}</h4>
-                    <input type="text" data-employee="${index + 1}" data-type="name" placeholder="Imię i nazwisko" value="${employee.name || ''}">
-                    <input type="date" data-employee="${index + 1}" data-type="hire-date" placeholder="Data zatrudnienia" value="${employee.hireDate || ''}">
-                    <input type="text" data-employee="${index + 1}" data-type="role" placeholder="Rola" value="${employee.role || ''}">
-                    <input type="number" data-employee="${index + 1}" data-type="salary" placeholder="Kwota [PLN]" value="${employee.salary || ''}">
-                    <select data-employee="${index + 1}" data-type="employment">
-                        <option value="">Wybierz formę zatrudnienia</option>
-                        <option value="B2B" ${employee.employment === 'B2B' ? 'selected' : ''}>B2B</option>
-                        <option value="Umowa o pracę" ${employee.employment === 'Umowa o pracę' ? 'selected' : ''}>Umowa o pracę</option>
-                    </select>
-                `;
-                section.appendChild(div);
-            });
-        }
-
-        function updateVehiclesSection() {
-            const section = document.getElementById('vehicles-section');
-            section.innerHTML = '';
-            vehicles.forEach((vehicle, index) => {
-                const div = document.createElement('div');
-                div.className = 'vehicle';
-                div.innerHTML = `
-                    <h4>Pojazd ${index + 1}</h4>
-                    <select data-vehicle="${index + 1}" data-type="description">
-                        <option value="">Wybierz segment</option>
-                        <option value="Segment A" ${vehicle.description === 'Segment A' ? 'selected' : ''}>Segment A</option>
-                        <option value="Segment B" ${vehicle.description === 'Segment B' ? 'selected' : ''}>Segment B</option>
-                        <option value="Segment C" ${vehicle.description === 'Segment C' ? 'selected' : ''}>Segment C</option>
-                    </select>
-                    <input type="date" data-vehicle="${index + 1}" data-type="start-date" placeholder="Od kiedy" value="${vehicle.startDate || ''}">
-                    <input type="number" data-vehicle="${index + 1}" data-type="quantity" placeholder="Ilość" value="${vehicle.quantity || ''}">
-                `;
-                section.appendChild(div);
-            });
         }
 
         function toggleCarriersComment() {
@@ -425,6 +432,7 @@
         }
 
         function saveData() {
+            console.log('Saving data...');
             candidate = {
                 name: document.getElementById('candidate-name').value,
                 email: document.getElementById('candidate-email').value,
@@ -489,9 +497,11 @@
 
             localStorage.setItem('budgetData', JSON.stringify({ candidate, clients, employees, vehicles, additionalInfo }));
             updateTable();
+            console.log('Data saved:', { candidate, clients, employees, vehicles, additionalInfo });
         }
 
         function updateTable() {
+            console.log('Updating table...');
             const tableBody = document.getElementById('data-table-body');
             tableBody.innerHTML = '';
 
@@ -660,80 +670,87 @@
         }
 
         function sendData() {
-            saveData();
-            if (!candidate.name || !candidate.email) {
-                alert('Proszę wypełnić imię i e-mail kandydata przed wysłaniem.');
-                return;
-            }
-
-            const monthLabels = getMonthLabels(candidate.startDate);
-            const emailContent = `
-                Dane kandydata:
-                Imię: ${candidate.name || ''}
-                E-mail: ${candidate.email || ''}
-                Miasto: ${candidate.city || ''}
-                Telefon: ${candidate.phone || ''}
-                Data startu oddziału: ${candidate.startDate || ''}
-                Forma zatrudnienia: ${candidate.employment || ''}
-
-                Klienci:
-                ${clients.map((client, idx) => `
-                    Klient ${idx + 1}:
-                    Typ: ${client.info.clientType || ''}
-                    Transport: ${client.info.transportType || ''}
-                    Przetarg/Giełda: ${client.info.tenderType || ''}
-                    Data wdrożenia: ${client.info.tenderDate || ''}
-                    Kierunki: ${client.info.directions || ''}
-                    Ładunki: ${client.info.loadType || ''}
-                    Umowy: ${client.info.hasContracts ? 'Tak' : 'Nie'}
-                    Przychody: ${Object.entries(client.incomes).map(([month, value]) => `${month}: ${value.toFixed(2)} PLN`).join(', ') || 'Brak'}
-                    Koszty: ${Object.entries(client.costs).map(([month, value]) => `${month}: ${value.toFixed(2)} PLN`).join(', ') || 'Brak'}
-                    Zlecenia: ${Object.entries(client.orders).map(([month, value]) => `${month}: ${value}`).join(', ') || 'Brak'}
-                `).join('\n')}
-
-                Zatrudnienie:
-                ${employees.map((emp, idx) => `
-                    Pracownik ${idx + 1}:
-                    Imię: ${emp.name || ''}
-                    Data zatrudnienia: ${emp.hireDate || ''}
-                    Rola: ${emp.role || ''}
-                    Kwota: ${emp.salary ? emp.salary.toFixed(2) : '0'} PLN
-                    Forma: ${emp.employment || ''}
-                `).join('\n')}
-
-                Pojazdy służbowe:
-                ${vehicles.map((veh, idx) => `
-                    Pojazd ${idx + 1}:
-                    Segment: ${veh.description || ''}
-                    Od kiedy: ${veh.startDate || ''}
-                    Ilość: ${veh.quantity || 0}
-                `).join('\n')}
-
-                Uzupełniające informacje:
-                Forma pracy oddziału: ${additionalInfo.branchWorkType || ''}
-                Koszty najmu: ${additionalInfo.officeRentCost ? additionalInfo.officeRentCost.toFixed(2) : '0'} PLN
-                Giełdy:
-                - Timo: ${additionalInfo.exchangeTimo ? 'Tak' : 'Nie'}
-                - Trans: ${additionalInfo.exchangeTrans ? 'Tak' : 'Nie'}
-                - Inne: ${additionalInfo.exchangeOther || ''}
-                Baza przewoźników: ${additionalInfo.hasCarriers ? 'Tak' : 'Nie'}
-                Komentarz przewoźników: ${additionalInfo.carriersComment || ''}
-                Uwagi kandydata: ${additionalInfo.candidateComments || ''}
-            `;
-            console.log('Email content:', emailContent);
-
-            emailjs.send('service_a1360jq', 'template_ujx0hdd', {
-                from_name: candidate.name || 'Użytkownik formularza',
-                email: candidate.email || '',
-                budget_data: emailContent.trim(),
-                timestamp: new Date().toISOString()
-            }).then(
-                () => alert('Dane zostały wysłane na e-mail!'),
-                (error) => {
-                    console.error('Error in sendData:', error);
-                    alert('Błąd podczas wysyłania: ' + error.text);
+            try {
+                saveData();
+                if (!candidate.name || !candidate.email) {
+                    alert('Proszę wypełnić imię i e-mail kandydata przed wysłaniem.');
+                    return;
                 }
-            );
+
+                const monthLabels = getMonthLabels(candidate.startDate);
+                const emailContent = `
+                    Dane kandydata:
+                    Imię: ${candidate.name || ''}
+                    E-mail: ${candidate.email || ''}
+                    Miasto: ${candidate.city || ''}
+                    Telefon: ${candidate.phone || ''}
+                    Data startu: ${candidate.startDate || ''}
+                    Forma zatrudnienia: ${candidate.employment || ''}
+
+                    Klienci:
+                    ${clients.map((client, index) => `
+                        Klient ${index + 1}:
+                        Typ: ${client.info.clientType || ''}
+                        Transport: ${client.info.transportType || ''}: ''
+                        Przetarg/Giełda: ${client.info.tenderType || ''}: ''
+                        Data wdrożenia: ${client.info.tenderDate || ''}: ''
+                        Kierunki: ${client.info.directions || ''}: || ''}: ''
+                        Ładunki: ${client.info.loadType || ''}: ''
+                        Umowy: ${client.info.hasContracts ? 'Tak' : 'Nie'}: ''
+                        Przychody: ${Object.entries(client.incomes).map(([month, value) => `${month}: ${value.toFixed(2)} PLN).join(', ') || ''}: 'Brak'}
+                        Koszty: ${Object.entries(client.costs).map(([month, ${value) => ${month}: ${value.toFixed(2)} PLN)).join(', ') || ''}: 'Brak'}
+                        Zlecenia: ${Object.entries(client.orders).map(([month, ${value}) => ${month}: ${value}).join(', ') || ''}. ${): 'Brak'}
+                    `).join('\n')}
+
+                    Zatrudnienie:
+                    ${employees.map((emp, index) => {
+                        `
+                        Pracownik ${index + 1}:
+                        Imię: ${employee.name || ''}: ''
+                        Data zatrudnienia: ${employee.hireDate || ''}: ''
+                        Rola: ${employee.role || ''}: ''
+                        Kwota: ${employee.salary ? employee.salary.toFixed(2) : '0'}: PLN ${): '0'} PLN
+                        Forma: ${employee.employment || ''}: ''
+                    `).join('\n')}
+
+                    Pojazdy służbowe:
+                    ${vehicles.map((veh, index) => {
+                        `
+                        Pojazd ${index + 1}:
+                        Segment: ${vehicle.description || ''}: ''
+                        Od kiedy: ${vehicle.startDate || ''}: ''
+                        Ilość: ${vehicle.quantity || ''}: '0'}
+                    `).join('\n')}
+
+                    Uzupełniające informacje:
+                    Forma pracy oddziału: ${additionalInfo.branchWorkType || ''}: ''
+                    Koszty najmu: ${additionalInfo.officeRentCost ? additionalInfo.officeRentCost.toFixed(2) : '0'}: PLN
+                    Giełdy:
+                    - Timo: ${additionalInfo.exchangeTimo ? 'Tak' : 'Nie'}: ''
+                    - Trans: ${additionalInfo.exchangeTrans ? 'Tak' : 'Nie'}: ''
+                    - Inne: ${additionalInfo.exchangeOther || ''}: ''
+                    Baza przewoźników: ${additionalInfo.hasCarriers ? 'Tak' : 'Nie'}: ''
+                    Komentarz przewoźników: ${additionalInfo.carriersComment || ''}: ''
+                    Uwagi kandydata: ${additionalInfo.candidateComments || ''}: ''
+                `;
+                console.log('Email content:', emailContent);
+
+                emailjs.send('service_a1360jq', 'template_ujx0hdd', {
+                    from_name: candidate.name || 'Użytkownik formularza',
+                    email: candidate.email,
+                    budget_data: emailContent.trim(),
+                    timestamp: new Date().toISOString()
+                }).then(
+                    () => alert('Dane zostały wysłane na e-mail!'),
+                    (error) => {
+                        console.error('Error in sendData:', error);
+                        alert('Błąd podczas wysyłania: ' + error.text);
+                    }
+                );
+            } catch (error) {
+                console.error('Error in sendData:', error);
+                alert('Błąd podczas wysyłania danych: ' + error.message);
+            }
         }
 
         function downloadJson() {
@@ -749,14 +766,14 @@
                 };
                 const dataStr = JSON.stringify(budgetData, null, 2);
                 const blob = new Blob([dataStr], { type: 'application/json' });
-                const url = blob.createObjectURL(blob);
+                const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = url;
                 link.download = 'budget_data.json';
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                URL.revokeObject(url);
+                URL.revokeObjectURL(url);
             } catch (error) {
                 console.error('Error in downloadJson:', error);
                 alert('Błąd podczas pobierania JSON: ' + error.message);
@@ -764,23 +781,22 @@
         }
 
         function clearData() {
-            if (confirm('Na pewno czy chcesz wyczyścić wszystkie dane?')) {
+            if (confirm('Czy na pewno chcesz wyczyścić wszystkie dane?')) {
                 candidate = {};
-                clients = [{ incomes: {}, costs: {}, orders: {}, info: {} }];
+                clients = [{ incomes: {}, costs: [], orders: [], info: {} }];
                 employees = [{}];
                 vehicles = [{}];
                 additionalInfo = {};
                 localStorage.removeItem('budgetData');
                 document.querySelectorAll('input, select, textarea').forEach(input => {
                     if (input.type === 'checkbox') input.checked = false;
-                    else {
-                        input.value = '';
-                    }
+                    else input.value = '';
                 });
                 updateClientsSection();
                 updateEmployeesSection();
                 updateVehiclesSection();
                 updateTable();
+                console.log('All data cleared');
             }
         }
 
@@ -788,7 +804,6 @@
         document.querySelectorAll('input, select, textarea').forEach(element => {
             element.addEventListener('input', () => {
                 saveData();
-                // Nie wywołuj updateClientsSection(), aby uniknąć nadpisywania
             });
         });
     </script>
