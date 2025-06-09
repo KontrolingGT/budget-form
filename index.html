@@ -38,12 +38,13 @@
         return gk_fileData[filename] || "";
         }
         </script><!DOCTYPE html>
+
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Formularz Budżetowy GT</title>
-    <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Formularz Budżetowy GT</title>
+<style>
         body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 10px; background-color: #f4f4f4; }
         .budget-container { background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); border: 2px solid #000000; }
         h2, h3, h4, h5 { color: #f05a28; }
@@ -68,154 +69,145 @@
     </style>
 </head>
 <body>
-    <div class="budget-container">
-        <h2>Formularz Budżetowy GT</h2>
-
-        <!-- Sekcja: Dane kandydata -->
-        <div class="section">
-            <h3>Dane kandydata</h3>
-            <input type="text" id="candidate-name" placeholder="Imię i nazwisko">
-            <input type="email" id="candidate-email" placeholder="E-mail">
-            <input type="text" id="candidate-city" placeholder="Miasto">
-            <input type="text" id="candidate-phone" placeholder="Telefon">
-            <label for="candidate-start-date">Data startu oddziału:</label>
-            <input type="date" id="candidate-start-date">
-            <select id="candidate-employment">
-                <option value="">Wybierz formę zatrudnienia</option>
-                <option value="B2B">B2B</option>
-                <option value="Umowa o pracę">Umowa o pracę</option>
-            </select>
-        </div>
-
-        <!-- Sekcja: Klienci -->
-        <div class="section">
-            <h3>Dane klientów</h3>
-            <div id="clients-section">
-                <div class="client">
-                    <h4>Klient 1</h4>
-                    <div class="client-info">
-                        <h5>Informacje o kliencie</h5>
-                        <select data-client="1" data-type="client-type">
-                            <option value="">Typ klienta</option>
-                            <option value="Bezpośredni">Bezpośredni</option>
-                            <option value="Operator logistyczny">Operator logistyczny</option>
-                            <option value="Spedycyjny">Spedycyjny</option>
-                        </select>
-                        <select data-client="1" data-type="transport-type">
-                            <option value="">Rodzaj transportu</option>
-                            <option value="Krajowy">Krajowy</option>
-                            <option value="Zagraniczny">Zagraniczny</option>
-                        </select>
-                        <select data-client="1" data-type="tender-type">
-                            <option value="">Typ klienta</option>
-                            <option value="Przetargowy">Przetargowy</option>
-                            <option value="Giełdowy">Giełdowy</option>
-                        </select>
-                        <input type="date" data-client="1" data-type="tender-date" placeholder="Data wdrożenia (jeśli przetargowy)">
-                        <input type="text" data-client="1" data-type="directions" placeholder="Główne kierunki">
-                        <select data-client="1" data-type="load-type">
-                            <option value="">Rodzaj ładunków</option>
-                            <option value="FTL">FTL</option>
-                            <option value="LTL">LTL</option>
-                        </select>
-                        <label><input type="checkbox" data-client="1" data-type="has-contracts"> Związany umowami z poprzednią firmą</label>
-                    </div>
-                    <div class="client-subsection">
-                        <h5>Przychody</h5>
-                        <div class="month-inputs" id="client-1-incomes"></div>
-                    </div>
-                    <div class="client-subsection">
-                        <h5>Koszty</h5>
-                        <div class="month-inputs" id="client-1-costs"></div>
-                    </div>
-                    <div class="client-subsection">
-                        <h5>Liczba zleceń</h5>
-                        <div class="month-inputs" id="client-1-orders"></div>
-                    </div>
-                </div>
-            </div>
-            <button onclick="addClient()">Dodaj kolejnego klienta</button>
-        </div>
-
-        <!-- Sekcja: Zatrudnienie -->
-        <div class="section">
-            <h3>Zatrudnienie</h3>
-            <p class="employee-note">Proszę wprowadzić wartość brutto wynagrodzenia na umowie o pracę lub wartość netto FV na B2B.</p>
-            <div id="employees-section">
-                <div class="employee">
-                    <h4>Pracownik 1</h4>
-                    <input type="text" data-employee="1" data-type="name" placeholder="Imię i nazwisko">
-                    <input type="date" data-employee="1" data-type="hire-date" placeholder="Data zatrudnienia">
-                    <input type="text" data-employee="1" data-type="role" placeholder="Rola">
-                    <input type="number" data-employee="1" data-type="salary" placeholder="Kwota [PLN]">
-                    <select data-employee="1" data-type="employment">
-                        <option value="">Wybierz formę zatrudnienia</option>
-                        <option value="B2B">B2B</option>
-                        <option value="Umowa o pracę">Umowa o pracę</option>
-                    </select>
-                </div>
-            </div>
-            <button onclick="addEmployee()">Dodaj kolejnego pracownika</button>
-        </div>
-
-        <!-- Sekcja: Pojazdy służbowe -->
-        <div class="section">
-            <h3>Pojazdy służbowe</h3>
-            <div id="vehicles-section">
-                <div class="vehicle">
-                    <h4>Pojazd 1</h4>
-                    <select data-vehicle="1" data-type="description">
-                        <option value="">Wybierz segment</option>
-                        <option value="Segment A">Segment A</option>
-                        <option value="Segment B">Segment B</option>
-                        <option value="Segment C">Segment C</option>
-                    </select>
-                    <input type="date" data-vehicle="1" data-type="start-date" placeholder="Od kiedy">
-                    <input type="number" data-vehicle="1" data-type="quantity" placeholder="Ilość">
-                </div>
-            </div>
-            <button onclick="addVehicle()">Dodaj kolejny pojazd</button>
-        </div>
-
-        <!-- Sekcja: Uzupełniające informacje -->
-        <div class="section">
-            <h3>Uzupełniające informacje</h3>
-            <input type="text" id="branch-work-type" placeholder="Forma pracy oddziału">
-            <input type="number" id="office-rent-cost" placeholder="Szacowane miesięczne koszty najmu biura (PLN)">
-            <label><input type="checkbox" id="exchange-timo"> Dostęp do giełdy Timo</label>
-            <label><input type="checkbox" id="exchange-trans"> Dostęp do giełdy Trans</label>
-            <input type="text" id="exchange-other" placeholder="Inne giełdy">
-            <label><input type="checkbox" id="has-carriers" onchange="toggleCarriersComment()"> Posiada bazę przewoźników</label>
-            <textarea id="carriers-comment" placeholder="Komentarz do bazy przewoźników" style="display: none;"></textarea>
-            <textarea id="candidate-comments" placeholder="Opis / Komentarz / Uwagi kandydata"></textarea>
-        </div>
-
-        <!-- Podgląd danych -->
-        <div class="section">
-            <h3>Podgląd danych</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Sekcja</th>
-                        <th>Dane</th>
-                    </tr>
-                </thead>
-                <tbody id="data-table-body"></tbody>
-            </table>
-        </div>
-
-        <!-- Przyciski akcji -->
-        <button id="send-data" onclick="sendData()">Wyślij dane e-mailem</button>
-        <button id="download-excel" onclick="downloadExcel()">Pobierz dane jako Excel</button>
-        <button id="download-json" onclick="downloadJson()">Pobierz dane jako JSON</button>
-        <button id="clear-data" onclick="clearData()">Wyczyść wszystkie dane</button>
-    </div>
-
-    <!-- Biblioteki zewnętrzne -->
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
-    <script>
+<div class="budget-container">
+<h2>Formularz Budżetowy GT</h2>
+<!-- Sekcja: Dane kandydata -->
+<div class="section">
+<h3>Dane kandydata</h3>
+<input id="candidate-name" placeholder="Imię i nazwisko" required="True" type="text"/>
+<input id="candidate-email" placeholder="E-mail" required="True" type="email"/>
+<input id="candidate-city" placeholder="Miasto" required="True" type="text"/>
+<input id="candidate-phone" placeholder="Telefon" required="True" type="text"/>
+<label for="candidate-start-date">Data startu oddziału:</label>
+<input id="candidate-start-date" required="True" type="date"/>
+<select id="candidate-employment">
+<option value="">Wybierz formę zatrudnienia</option>
+<option value="B2B">B2B</option>
+<option value="Umowa o pracę">Umowa o pracę</option>
+</select>
+</div>
+<!-- Sekcja: Klienci -->
+<div class="section">
+<h3>Dane klientów</h3>
+<div id="clients-section">
+<div class="client">
+<h4>Klient 1</h4>
+<div class="client-info">
+<h5>Informacje o kliencie</h5>
+<select data-client="1" data-type="client-type">
+<option value="">Typ klienta</option>
+<option value="Bezpośredni">Bezpośredni</option>
+<option value="Operator logistyczny">Operator logistyczny</option>
+<option value="Spedycyjny">Spedycyjny</option>
+</select>
+<select data-client="1" data-type="transport-type">
+<option value="">Rodzaj transportu</option>
+<option value="Krajowy">Krajowy</option>
+<option value="Zagraniczny">Zagraniczny</option>
+</select>
+<select data-client="1" data-type="tender-type">
+<option value="">Typ klienta</option>
+<option value="Przetargowy">Przetargowy</option>
+<option value="Giełdowy">Giełdowy</option>
+</select>
+<input data-client="1" data-type="tender-date" placeholder="Data wdrożenia (jeśli przetargowy)" required="True" type="date"/>
+<input data-client="1" data-type="directions" placeholder="Główne kierunki" required="True" type="text"/>
+<select data-client="1" data-type="load-type">
+<option value="">Rodzaj ładunków</option>
+<option value="FTL">FTL</option>
+<option value="LTL">LTL</option>
+</select>
+<label><input data-client="1" data-type="has-contracts" type="checkbox"/> Związany umowami z poprzednią firmą</label>
+</div>
+<div class="client-subsection">
+<h5>Przychody</h5>
+<div class="month-inputs" id="client-1-incomes"></div>
+</div>
+<div class="client-subsection">
+<h5>Koszty</h5>
+<div class="month-inputs" id="client-1-costs"></div>
+</div>
+<div class="client-subsection">
+<h5>Liczba zleceń</h5>
+<div class="month-inputs" id="client-1-orders"></div>
+</div>
+</div>
+</div>
+<button onclick="addClient()">Dodaj kolejnego klienta</button>
+</div>
+<!-- Sekcja: Zatrudnienie -->
+<div class="section">
+<h3>Zatrudnienie</h3>
+<p class="employee-note">Proszę wprowadzić wartość brutto wynagrodzenia na umowie o pracę lub wartość netto FV na B2B.</p>
+<div id="employees-section">
+<div class="employee">
+<h4>Pracownik 1</h4>
+<input data-employee="1" data-type="name" placeholder="Imię i nazwisko" required="True" type="text"/>
+<input data-employee="1" data-type="hire-date" placeholder="Data zatrudnienia" required="True" type="date"/>
+<input data-employee="1" data-type="role" placeholder="Rola" required="True" type="text"/>
+<input data-employee="1" data-type="salary" placeholder="Kwota [PLN]" required="True" type="number"/>
+<select data-employee="1" data-type="employment">
+<option value="">Wybierz formę zatrudnienia</option>
+<option value="B2B">B2B</option>
+<option value="Umowa o pracę">Umowa o pracę</option>
+</select>
+</div>
+</div>
+<button onclick="addEmployee()">Dodaj kolejnego pracownika</button>
+</div>
+<!-- Sekcja: Pojazdy służbowe -->
+<div class="section">
+<h3>Pojazdy służbowe</h3>
+<div id="vehicles-section">
+<div class="vehicle">
+<h4>Pojazd 1</h4>
+<select data-type="description" data-vehicle="1">
+<option value="">Wybierz segment</option>
+<option value="Segment A">Segment A</option>
+<option value="Segment B">Segment B</option>
+<option value="Segment C">Segment C</option>
+</select>
+<input data-type="start-date" data-vehicle="1" placeholder="Od kiedy" required="True" type="date"/>
+<input data-type="quantity" data-vehicle="1" placeholder="Ilość" required="True" type="number"/>
+</div>
+</div>
+<button onclick="addVehicle()">Dodaj kolejny pojazd</button>
+</div>
+<!-- Sekcja: Uzupełniające informacje -->
+<div class="section">
+<h3>Uzupełniające informacje</h3>
+<input id="branch-work-type" placeholder="Forma pracy oddziału" required="True" type="text"/>
+<input id="office-rent-cost" placeholder="Szacowane miesięczne koszty najmu biura (PLN)" required="True" type="number"/>
+<label><input id="exchange-timo" type="checkbox"/> Dostęp do giełdy Timo</label>
+<label><input id="exchange-trans" type="checkbox"/> Dostęp do giełdy Trans</label>
+<input id="exchange-other" placeholder="Inne giełdy" required="True" type="text"/>
+<label><input id="has-carriers" onchange="toggleCarriersComment()" type="checkbox"/> Posiada bazę przewoźników</label>
+<textarea id="carriers-comment" placeholder="Komentarz do bazy przewoźników" required="True" style="display: none;"></textarea>
+<textarea id="candidate-comments" placeholder="Opis / Komentarz / Uwagi kandydata" required="True"></textarea>
+</div>
+<!-- Podgląd danych -->
+<div class="section">
+<h3>Podgląd danych</h3>
+<table>
+<thead>
+<tr>
+<th>Sekcja</th>
+<th>Dane</th>
+</tr>
+</thead>
+<tbody id="data-table-body"></tbody>
+</table>
+</div>
+<!-- Przyciski akcji -->
+<button id="send-data" onclick="sendData()">Wyślij dane e-mailem</button>
+<button id="download-excel" onclick="downloadExcel()">Pobierz dane jako Excel</button>
+<button id="download-json" onclick="downloadJson()">Pobierz dane jako JSON</button>
+<button id="clear-data" onclick="clearData()">Wyczyść wszystkie dane</button>
+</div>
+<!-- Biblioteki zewnętrzne -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
         (function() {
             emailjs.init("5Vf4_3IwKm09MW_ZZ"); // EmailJS Public Key
         })();
