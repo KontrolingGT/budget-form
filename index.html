@@ -102,7 +102,7 @@
         </div>
 
         <!-- Sekcja: Pojazdy służbowe -->
-        <divVZ class="section">
+        <div class="section">
             <h3>Pojazdy służbowe</h3>
             <div id="vehicles-section"></div>
             <button id="add-vehicle-btn">Dodaj kolejny pojazd</button>
@@ -175,7 +175,6 @@
 
         // Renderowanie sekcji klientów
         function renderClients() {
-            console.log('Rendering clients:', state.clients);
             const section = document.getElementById('clients-section');
             const startDate = state.candidate.startDate || '';
             const monthLabels = getMonthLabels(startDate);
@@ -239,7 +238,6 @@
 
         // Renderowanie sekcji pracowników
         function renderEmployees() {
-            console.log('Rendering employees:', state.employees);
             const section = document.getElementById('employees-section');
             section.innerHTML = state.employees.map((emp, idx) => `
                 <div class="employee">
@@ -259,7 +257,6 @@
 
         // Renderowanie sekcji pojazdów
         function renderVehicles() {
-            console.log('Rendering vehicles:', state.vehicles);
             const section = document.getElementById('vehicles-section');
             section.innerHTML = state.vehicles.map((veh, idx) => `
                 <div class="vehicle">
@@ -278,11 +275,9 @@
 
         // Aktualizacja tabeli podsumowania
         function updateSummaryTable() {
-            console.log('Updating summary table...');
             const tableBody = document.getElementById('data-table-body');
             tableBody.innerHTML = '';
 
-            // Dane kandydata
             if (Object.values(state.candidate).some(val => val)) {
                 tableBody.innerHTML += `
                     <tr>
@@ -292,7 +287,6 @@
                 `;
             }
 
-            // Klienci
             state.clients.forEach((client, idx) => {
                 const incomes = Object.entries(client.incomes).map(([m, v]) => `${m}: ${v.toFixed(2)} PLN`).join(', ');
                 const costs = Object.entries(client.costs).map(([m, v]) => `${m}: ${v.toFixed(2)} PLN`).join(', ');
@@ -308,7 +302,6 @@
                 }
             });
 
-            // Pracownicy
             state.employees.forEach((emp, idx) => {
                 if (Object.values(emp).some(val => val)) {
                     tableBody.innerHTML += `
@@ -320,7 +313,6 @@
                 }
             });
 
-            // Pojazdy
             state.vehicles.forEach((veh, idx) => {
                 if (Object.values(veh).some(val => val)) {
                     tableBody.innerHTML += `
@@ -332,7 +324,6 @@
                 }
             });
 
-            // Uzupełniające informacje
             if (Object.values(state.additionalInfo).some(val => val)) {
                 tableBody.innerHTML += `
                     <tr>
@@ -345,8 +336,6 @@
 
         // Zapis stanu
         function saveState() {
-            console.log('Saving state...');
-            // Dane kandydata
             state.candidate = {
                 name: document.getElementById('candidate-name').value,
                 email: document.getElementById('candidate-email').value,
@@ -356,8 +345,7 @@
                 employment: document.getElementById('candidate-employment').value
             };
 
-            // Klienci
-            state.clients = Array.from(document.querySelectorAll('.client')).map((div, idx) => {
+            state.clients = state.clients.map((client, idx) => {
                 const incomes = {};
                 const costs = {};
                 const orders = {};
@@ -375,34 +363,31 @@
                     costs,
                     orders,
                     info: {
-                        clientType: document.querySelector(`select[data-client="${idx + 1}"][data-type="client-type"]`)?.value || '',
-                        transportType: document.querySelector(`select[data-client="${idx + 1}"][data-type="transport-type"]`)?.value || '',
-                        tenderType: document.querySelector(`select[data-client="${idx + 1}"][data-type="tender-type"]`)?.value || '',
-                        tenderDate: document.querySelector(`input[data-client="${idx + 1}"][data-type="tender-date"]`)?.value || '',
-                        directions: document.querySelector(`input[data-client="${idx + 1}"][data-type="directions"]`)?.value || '',
-                        loadType: document.querySelector(`select[data-client="${idx + 1}"][data-type="load-type"]`)?.value || '',
-                        hasContracts: document.querySelector(`input[data-client="${idx + 1}"][data-type="has-contracts"]`)?.checked || false
+                        clientType: document.querySelector(`select[data-client="${idx + 1}"][data-type="client-type"]`)?.value || client.info.clientType || '',
+                        transportType: document.querySelector(`select[data-client="${idx + 1}"][data-type="transport-type"]`)?.value || client.info.transportType || '',
+                        tenderType: document.querySelector(`select[data-client="${idx + 1}"][data-type="tender-type"]`)?.value || client.info.tenderType || '',
+                        tenderDate: document.querySelector(`input[data-client="${idx + 1}"][data-type="tender-date"]`)?.value || client.info.tenderDate || '',
+                        directions: document.querySelector(`input[data-client="${idx + 1}"][data-type="directions"]`)?.value || client.info.directions || '',
+                        loadType: document.querySelector(`select[data-client="${idx + 1}"][data-type="load-type"]`)?.value || client.info.loadType || '',
+                        hasContracts: document.querySelector(`input[data-client="${idx + 1}"][data-type="has-contracts"]`)?.checked || client.info.hasContracts || false
                     }
                 };
             });
 
-            // Pracownicy
-            state.employees = Array.from(document.querySelectorAll('.employee')).map((div, idx) => ({
-                name: document.querySelector(`input[data-employee="${idx + 1}"][data-type="name"]`)?.value || '',
-                hireDate: document.querySelector(`input[data-employee="${idx + 1}"][data-type="hire-date"]`)?.value || '',
-                role: document.querySelector(`input[data-employee="${idx + 1}"][data-type="role"]`)?.value || '',
-                salary: parseFloat(document.querySelector(`input[data-employee="${idx + 1}"][data-type="salary"]`)?.value) || 0,
-                employment: document.querySelector(`select[data-employee="${idx + 1}"][data-type="employment"]`)?.value || ''
+            state.employees = state.employees.map((emp, idx) => ({
+                name: document.querySelector(`input[data-employee="${idx + 1}"][data-type="name"]`)?.value || emp.name || '',
+                hireDate: document.querySelector(`input[data-employee="${idx + 1}"][data-type="hire-date"]`)?.value || emp.hireDate || '',
+                role: document.querySelector(`input[data-employee="${idx + 1}"][data-type="role"]`)?.value || emp.role || '',
+                salary: parseFloat(document.querySelector(`input[data-employee="${idx + 1}"][data-type="salary"]`)?.value) || emp.salary || 0,
+                employment: document.querySelector(`select[data-employee="${idx + 1}"][data-type="employment"]`)?.value || emp.employment || ''
             }));
 
-            // Pojazdy
-            state.vehicles = Array.from(document.querySelectorAll('.vehicle')).map((div, idx) => ({
-                description: document.querySelector(`select[data-vehicle="${idx + 1}"][data-type="description"]`)?.value || '',
-                startDate: document.querySelector(`input[data-vehicle="${idx + 1}"][data-type="start-date"]`)?.value || '',
-                quantity: parseInt(document.querySelector(`input[data-vehicle="${idx + 1}"][data-type="quantity"]`)?.value) || 0
+            state.vehicles = state.vehicles.map((veh, idx) => ({
+                description: document.querySelector(`select[data-vehicle="${idx + 1}"][data-type="description"]`)?.value || veh.description || '',
+                startDate: document.querySelector(`input[data-vehicle="${idx + 1}"][data-type="start-date"]`)?.value || veh.startDate || '',
+                quantity: parseInt(document.querySelector(`input[data-vehicle="${idx + 1}"][data-type="quantity"]`)?.value) || veh.quantity || 0
             }));
 
-            // Uzupełniające informacje
             state.additionalInfo = {
                 branchWorkType: document.getElementById('branch-work-type').value,
                 officeRentCost: parseFloat(document.getElementById('office-rent-cost').value) || 0,
@@ -416,38 +401,34 @@
 
             localStorage.setItem('budgetData', JSON.stringify(state));
             updateSummaryTable();
-            console.log('State saved:', state);
         }
 
         // Funkcje dodawania
         function addClient() {
-            console.log('Adding client...');
             if (state.clients.length < 10) {
+                saveState(); // Zapisz aktualne dane przed dodaniem nowego klienta
                 state.clients.push({ incomes: {}, costs: {}, orders: {}, info: {} });
                 renderClients();
-                saveState();
             } else {
                 alert('Maksymalna liczba klientów: 10');
             }
         }
 
         function addEmployee() {
-            console.log('Adding employee...');
             if (state.employees.length < 15) {
+                saveState(); // Zapisz aktualne dane przed dodaniem nowego pracownika
                 state.employees.push({});
                 renderEmployees();
-                saveState();
             } else {
                 alert('Maksymalna liczba pracowników: 15');
             }
         }
 
         function addVehicle() {
-            console.log('Adding vehicle...');
             if (state.vehicles.length < 5) {
+                saveState(); // Zapisz aktualne dane przed dodaniem nowego pojazdu
                 state.vehicles.push({});
                 renderVehicles();
-                saveState();
             } else {
                 alert('Maksymalna liczba pojazdów: 5');
             }
@@ -460,19 +441,16 @@
 
         // Generowanie Excela
         function generateExcel() {
-            console.log('Generating Excel...');
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.json_to_sheet([]);
             const monthLabels = getMonthLabels(state.candidate.startDate);
 
-            // Dane kandydata
             XLSX.utils.sheet_add_json(ws, [{ C: state.candidate.name || '' }], { origin: 'C2', skipHeader: true });
             XLSX.utils.sheet_add_json(ws, [{ C: state.candidate.city || '' }], { origin: 'C3', skipHeader: true });
             XLSX.utils.sheet_add_json(ws, [{ H: state.candidate.email || '' }], { origin: 'H2', skipHeader: true });
             XLSX.utils.sheet_add_json(ws, [{ H: state.candidate.phone || '' }], { origin: 'H3', skipHeader: true });
             XLSX.utils.sheet_add_json(ws, [{ C: state.candidate.startDate || '' }], { origin: 'C5', skipHeader: true });
 
-            // Klienci
             state.clients.forEach((client, idx) => {
                 const baseRow = 6 + idx * 5;
                 const incomes = monthLabels.reduce((acc, m, i) => ({ ...acc, [MONTH_COLUMNS[i]]: client.incomes[m] || 0 }), {});
@@ -483,7 +461,6 @@
                 XLSX.utils.sheet_add_json(ws, [orders], { origin: `C${baseRow + 4}`, skipHeader: true });
             });
 
-            // Informacje o klientach
             const clientInfo = { clientType: {}, transportType: {}, tenderType: {}, tenderDate: {}, directions: {}, loadType: {}, hasContracts: {} };
             state.clients.forEach((client, idx) => {
                 const col = CLIENT_INFO_COLUMNS[idx];
@@ -503,7 +480,6 @@
             XLSX.utils.sheet_add_json(ws, [clientInfo.loadType], { origin: 'G181', skipHeader: true });
             XLSX.utils.sheet_add_json(ws, [clientInfo.hasContracts], { origin: 'G182', skipHeader: true });
 
-            // Zatrudnienie
             state.employees.forEach((emp, idx) => {
                 XLSX.utils.sheet_add_json(ws, [{
                     B: emp.name || '',
@@ -514,7 +490,6 @@
                 }], { origin: `B${65 + idx}`, skipHeader: true });
             });
 
-            // Pojazdy
             state.vehicles.forEach((veh, idx) => {
                 XLSX.utils.sheet_add_json(ws, [{
                     B: veh.description || '',
@@ -523,7 +498,6 @@
                 }], { origin: `B${151 + idx}`, skipHeader: true });
             });
 
-            // Uzupełniające informacje
             XLSX.utils.sheet_add_json(ws, [{ G: state.additionalInfo.branchWorkType || '' }], { origin: 'G168', skipHeader: true });
             XLSX.utils.sheet_add_json(ws, [{ G: state.additionalInfo.officeRentCost || 0 }], { origin: 'G169', skipHeader: true });
             XLSX.utils.sheet_add_json(ws, [{ G: state.additionalInfo.exchangeTimo ? 'Tak' : 'Nie' }], { origin: 'G171', skipHeader: true });
@@ -541,7 +515,6 @@
             saveState();
             const wb = generateExcel();
             XLSX.writeFile(wb, `GT_Budzet_${state.candidate.name || 'Anonim'}_${new Date().toISOString().split('T')[0]}.xlsx`);
-            console.log('Excel downloaded');
         }
 
         // Wysyłka e-mail
@@ -610,9 +583,7 @@
                 timestamp: new Date().toISOString()
             }).then(() => {
                 alert('Dane wysłane na e-mail!');
-                console.log('Email sent');
             }, (error) => {
-                console.error('Email error:', error);
                 alert('Błąd wysyłania e-mail: ' + error.text);
             });
         }
@@ -637,13 +608,11 @@
                 renderVehicles();
                 updateSummaryTable();
                 toggleCarriersComment();
-                console.log('Data cleared');
             }
         }
 
         // Inicjalizacja
         window.onload = () => {
-            console.log('Initializing...');
             const savedData = localStorage.getItem('budgetData');
             if (savedData) {
                 state = JSON.parse(savedData);
@@ -668,7 +637,6 @@
             renderVehicles();
             updateSummaryTable();
 
-            // Event listeners
             document.getElementById('add-client-btn').addEventListener('click', addClient);
             document.getElementById('add-employee-btn').addEventListener('click', addEmployee);
             document.getElementById('add-vehicle-btn').addEventListener('click', addVehicle);
@@ -677,6 +645,10 @@
             document.getElementById('clear-data').addEventListener('click', clearData);
             document.querySelectorAll('input, select, textarea').forEach(el => {
                 el.addEventListener('input', saveState);
+            });
+            document.getElementById('candidate-start-date').addEventListener('change', () => {
+                saveState();
+                renderClients();
             });
         };
     </script>
