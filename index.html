@@ -38,13 +38,12 @@
         return gk_fileData[filename] || "";
         }
         </script><!DOCTYPE html>
-
 <html lang="pl">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Formularz Budżetowy GT</title>
-<style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formularz Budżetowy GT</title>
+    <style>
         body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 10px; background-color: #f4f4f4; }
         .budget-container { background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); border: 2px solid #000000; }
         h2, h3, h4, h5 { color: #f05a28; }
@@ -68,77 +67,86 @@
     </style>
 </head>
 <body>
-<div class="budget-container">
-<h2>Formularz Budżetowy GT</h2>
-<!-- Sekcja: Dane kandydata -->
-<div class="section">
-<h3>Dane kandydata</h3>
-<input id="candidate-name" placeholder="Imię i nazwisko" type="text"/>
-<input id="candidate-email" placeholder="E-mail" type="email"/>
-<input id="candidate-city" placeholder="Miasto" type="text"/>
-<input id="candidate-phone" placeholder="Telefon" type="text"/>
-<label for="candidate-start-date">Data startu oddziału:</label>
-<input id="candidate-start-date" type="date"/>
-<select id="candidate-employment">
-<option value="">Wybierz formę zatrudnienia</option>
-<option value="B2B">B2B</option>
-<option value="Umowa o pracę">Umowa o pracę</option>
-</select>
-</div>
-<!-- Sekcja: Klienci -->
-<div class="section">
-<h3>Dane klientów</h3>
-<div id="clients-section"></div>
-<button id="add-client-btn">Dodaj kolejnego klienta</button>
-</div>
-<!-- Sekcja: Zatrudnienie -->
-<div class="section">
-<h3>Zatrudnienie</h3>
-<p class="employee-note">Proszę wprowadzić wartość brutto wynagrodzenia na umowie o pracę lub wartość netto FV na B2B.</p>
-<div id="employees-section"></div>
-<button id="add-employee-btn">Dodaj kolejnego pracownika</button>
-</div>
-<!-- Sekcja: Pojazdy służbowe -->
-<div class="section">
-<h3>Pojazdy służbowe</h3>
-<div id="vehicles-section"></div>
-<button id="add-vehicle-btn">Dodaj kolejny pojazd</button>
-</div>
-<!-- Sekcja: Uzupełniające informacje -->
-<div class="section">
-<h3>Uzupełniające informacje</h3>
-<input id="branch-work-type" placeholder="Forma pracy oddziału" type="text"/>
-<input id="office-rent-cost" placeholder="Szacowane miesięczne koszty najmu biura (PLN)" type="number"/>
-<label><input id="exchange-timo" type="checkbox"/> Dostęp do giełdy Timo</label>
-<label><input id="exchange-trans" type="checkbox"/> Dostęp do giełdy Trans</label>
-<input id="exchange-other" placeholder="Inne giełdy" type="text"/>
-<label><input id="has-carriers" onchange="toggleCarriersComment()" type="checkbox"/> Posiada bazę przewoźników</label>
-<textarea id="carriers-comment" placeholder="Komentarz do bazy przewoźników" style="display: none;"></textarea>
-<textarea id="candidate-comments" placeholder="Opis / Komentarz / Uwagi kandydata"></textarea>
-</div>
-<!-- Podgląd danych -->
-<div class="section">
-<h3>Podgląd danych</h3>
-<table>
-<thead>
-<tr>
-<th>Sekcja</th>
-<th>Dane</th>
-</tr>
-</thead>
-<tbody id="data-table-body"></tbody>
-</table>
-</div>
-<!-- Przyciski akcji -->
-<button id="send-data">Wyślij dane e-mailem</button>
-<button id="download-excel">Pobierz dane jako Excel</button>
-<button style="display:none">Pobierz dane jako JSON</button>
-<button id="clear-data">Wyczyść wszystkie dane</button>
-</div>
-<!-- Biblioteki zewnętrzne -->
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script>
+    <div class="budget-container">
+        <h2>Formularz Budżetowy GT</h2>
+
+        <!-- Sekcja: Dane kandydata -->
+        <div class="section">
+            <h3>Dane kandydata</h3>
+            <input type="text" id="candidate-name" placeholder="Imię i nazwisko">
+            <input type="email" id="candidate-email" placeholder="E-mail">
+            <input type="text" id="candidate-city" placeholder="Miasto">
+            <input type="text" id="candidate-phone" placeholder="Telefon">
+            <label for="candidate-start-date">Data startu oddziału:</label>
+            <input type="date" id="candidate-start-date">
+            <select id="candidate-employment">
+                <option value="">Wybierz formę zatrudnienia</option>
+                <option value="B2B">B2B</option>
+                <option value="Umowa o pracę">Umowa o pracę</option>
+            </select>
+        </div>
+
+        <!-- Sekcja: Klienci -->
+        <div class="section">
+            <h3>Dane klientów</h3>
+            <div id="clients-section"></div>
+            <button id="add-client-btn">Dodaj kolejnego klienta</button>
+        </div>
+
+        <!-- Sekcja: Zatrudnienie -->
+        <div class="section">
+            <h3>Zatrudnienie</h3>
+            <p class="employee-note">Proszę wprowadzić wartość brutto wynagrodzenia na umowie o pracę lub wartość netto FV na B2B.</p>
+            <div id="employees-section"></div>
+            <button id="add-employee-btn">Dodaj kolejnego pracownika</button>
+        </div>
+
+        <!-- Sekcja: Pojazdy służbowe -->
+        <div class="section">
+            <h3>Pojazdy służbowe</h3>
+            <div id="vehicles-section"></div>
+            <button id="add-vehicle-btn">Dodaj kolejny pojazd</button>
+        </div>
+
+        <!-- Sekcja: Uzupełniające informacje -->
+        <div class="section">
+            <h3>Uzupełniające informacje</h3>
+            <input type="text" id="branch-work-type" placeholder="Forma pracy oddziału">
+            <input type="number" id="office-rent-cost" placeholder="Szacowane miesięczne koszty najmu biura (PLN)">
+            <label><input type="checkbox" id="exchange-timo"> Dostęp do giełdy Timo</label>
+            <label><input type="checkbox" id="exchange-trans"> Dostęp do giełdy Trans</label>
+            <input type="text" id="exchange-other" placeholder="Inne giełdy">
+            <label><input type="checkbox" id="has-carriers" onchange="toggleCarriersComment()"> Posiada bazę przewoźników</label>
+            <textarea id="carriers-comment" placeholder="Komentarz do bazy przewoźników" style="display: none;"></textarea>
+            <textarea id="candidate-comments" placeholder="Opis / Komentarz / Uwagi kandydata"></textarea>
+        </div>
+
+        <!-- Podgląd danych -->
+        <div class="section">
+            <h3>Podgląd danych</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Sekcja</th>
+                        <th>Dane</th>
+                    </tr>
+                </thead>
+                <tbody id="data-table-body"></tbody>
+            </table>
+        </div>
+
+        <!-- Przyciski akcji -->
+        <button id="send-data">Wyślij dane e-mailem</button>
+        <button id="download-excel">Pobierz dane jako Excel</button>
+        <button id="download-json">Pobierz dane jako JSON</button>
+        <button id="clear-data">Wyczyść wszystkie dane</button>
+    </div>
+
+    <!-- Biblioteki zewnętrzne -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script>
         (function() {
             emailjs.init("5Vf4_3IwKm09MW_ZZ"); // EmailJS Public Key
         })();
